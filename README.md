@@ -17,3 +17,12 @@ The source grid is included as `source_grid.jpeg`.
 
 
 Update: Removed em dashes from intro text and kept bullet points in strengths/watch-for sections.
+
+
+Updated icon crops were replaced from the user-provided borderless source grid.
+
+
+Update: person result cards now show a small title line under each portrait name.
+
+
+Bug fix: corrected portrait image path lookup from personImagePaths to personPortraits.

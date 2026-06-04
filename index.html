@@ -136,6 +136,9 @@
 
   .person-name { font-size: 13px; font-weight: 500; color: #5a5148; }
 
+  .person-text { display: flex; flex-direction: column; gap: 2px; }
+  .person-title { font-size: 11px; color: #9c9186; line-height: 1.35; letter-spacing: 0.02em; }
+
   .careers-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1rem; }
   .career-tag { background: #F5F0E8; border: 0.5px solid #d9d0c4; border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #7a6e65; letter-spacing: 0.03em; }
 
@@ -351,6 +354,56 @@ const personPortraits = {
   'Julius Caesar': 'icons/people/julius-caesar.png'
 };
 
+const personTitles = {
+  "Queen Elizabeth II": "Queen of the United Kingdom",
+  "Warren Buffett": "Investor & Berkshire Hathaway CEO",
+  "George Washington": "1st U.S. President",
+  "Mother Teresa": "Humanitarian & Saint",
+  "Kate Middleton": "Princess of Wales",
+  "Rosa Parks": "Civil Rights Activist",
+  "Martin Luther King Jr.": "Civil Rights Leader",
+  "Nelson Mandela": "Former President of South Africa",
+  "Mahatma Gandhi": "Indian Independence Leader",
+  "Nikola Tesla": "Inventor & Electrical Engineer",
+  "Elon Musk": "Entrepreneur & CEO",
+  "Isaac Newton": "Physicist & Mathematician",
+  "Clint Eastwood": "Actor & Film Director",
+  "Bruce Lee": "Martial Artist & Actor",
+  "Amelia Earhart": "Aviation Pioneer",
+  "Michael Jackson": "Singer & Performer",
+  "Frida Kahlo": "Painter",
+  "Audrey Hepburn": "Actress & Humanitarian",
+  "J.R.R. Tolkien": "Author of The Lord of the Rings",
+  "Vincent van Gogh": "Post-Impressionist Painter",
+  "William Shakespeare": "Playwright & Poet",
+  "Albert Einstein": "Theoretical Physicist",
+  "Charles Darwin": "Naturalist & Evolution Theorist",
+  "Bill Gates": "Microsoft Co-founder",
+  "Ernest Hemingway": "Novelist & Journalist",
+  "Theodore Roosevelt": "26th U.S. President",
+  "Madonna": "Singer & Performer",
+  "Marilyn Monroe": "Actress & Model",
+  "Elvis Presley": "Singer & Actor",
+  "Jamie Oliver": "Chef & TV Presenter",
+  "Robin Williams": "Actor & Comedian",
+  "Ellen DeGeneres": "Comedian & TV Host",
+  "Walt Disney": "Disney Co-founder",
+  "Mark Twain": "Author & Humorist",
+  "Leonardo da Vinci": "Artist & Inventor",
+  "Thomas Edison": "Inventor",
+  "Judge Judy": "TV Judge",
+  "Henry Ford": "Ford Motor Company Founder",
+  "Sonia Sotomayor": "U.S. Supreme Court Justice",
+  "Taylor Swift": "Singer-Songwriter",
+  "Jennifer Garner": "Actress",
+  "Bill Clinton": "42nd U.S. President",
+  "Oprah Winfrey": "Media Executive & Host",
+  "Barack Obama": "44th U.S. President",
+  "Steve Jobs": "CEO of Apple",
+  "Margaret Thatcher": "Former UK Prime Minister",
+  "Julius Caesar": "Roman Statesman & General"
+};
+
 const descriptions = {
   ISTJ:{name:"The Logistician",desc:"Steady, practical, and responsible. You trust what is proven, clear, and realistic and others rely on you because you take commitments seriously. Care shows through consistency, not performance.",strengths:["Reliable and dependable","Highly disciplined","Careful with details","Deeply loyal","Organized and methodical"],weaknesses:["Can be rigid and inflexible","Overly serious at times","Resistant to change","Struggles with emotional expression","May miss the bigger picture"],careers:["Accountant","Operations Manager","Data Analyst"],people:["Queen Elizabeth II","Warren Buffett","George Washington"]},
   ISFJ:{name:"The Defender",desc:"Gentle, loyal, and protective. You notice small details about people and remember what matters to them. You may not seek attention, but you often become the emotional foundation of your relationships.",strengths:["Deeply caring and empathetic","Loyal and committed","Patient and steady","Highly observant of others","Practical and dependable"],weaknesses:["Prone to people-pleasing","Avoids conflict too often","Carries too much alone","Struggles to say no","Takes criticism personally"],careers:["Nurse","Teacher","HR Assistant"],people:["Mother Teresa","Kate Middleton","Rosa Parks"]},
@@ -462,8 +515,13 @@ function renderResult() {
           <div class="people-list">
             ${d.people.map(p=>`
               <div class="person-item">
-                <div class="person-dot">${personPortraits[p] ? `<img src="${personPortraits[p]}" alt="${p} portrait icon">` : (personIcons[p] || initials(p))}</div>
-                <div class="person-name">${p}</div>
+                <div class="person-dot">
+                  <img src="${personPortraits[p] || ''}" alt="${p}">
+                </div>
+                <div class="person-text">
+                  <div class="person-name">${p}</div>
+                  <div class="person-title">${personTitles[p] || ''}</div>
+                </div>
               </div>
             `).join('')}
           </div>
