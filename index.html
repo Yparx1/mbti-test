@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI Personality Test</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #F5F0E8;
+    font-family: Georgia, serif;
+    min-height: 100vh;
+    color: #3a3530;
+  }
+  .app { max-width: 620px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  .header { text-align: center; margin-bottom: 3rem; }
+  .header h1 { font-size: 13px; font-weight: 500; letter-spacing: 0.18em; color: #9c9186; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .header p { font-size: 22px; font-weight: 400; color: #3a3530; line-height: 1.4; }
+
+  .progress-wrap { margin-bottom: 2.5rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #a09585; margin-bottom: 8px; letter-spacing: 0.05em; }
+  .progress-bar { height: 2px; background: #e0d8cc; border-radius: 2px; }
+  .progress-fill { height: 2px; background: #b5a898; border-radius: 2px; transition: width 0.4s ease; }
+
+  .question-block { margin-bottom: 2.5rem; }
+  .question-text { font-size: 17px; line-height: 1.65; color: #3a3530; margin-bottom: 1.2rem; font-weight: 400; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    background: #EEE9E0;
+    border: 0.5px solid #d9d0c4;
+    border-radius: 10px;
+    padding: 14px 18px;
+    text-align: left;
+    font-size: 15px;
+    color: #5a5148;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    line-height: 1.5;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-family: Georgia, serif;
+  }
+  .option-btn:hover { background: #e6ddd1; border-color: #c5bab0; color: #3a3530; }
+  .option-btn.selected { background: #d6ccbf; border-color: #b5a898; color: #3a3530; }
+  .option-letter { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; color: #b5a898; min-width: 14px; margin-top: 2px; text-transform: uppercase; }
+  .option-btn.selected .option-letter { color: #7a6e65; }
+
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 2.5rem; }
+  .nav-btn {
+    background: transparent;
+    border: 0.5px solid #c5bab0;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 14px;
+    color: #7a6e65;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    letter-spacing: 0.04em;
+    font-family: Georgia, serif;
+  }
+  .nav-btn:hover { background: #e6ddd1; color: #3a3530; }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-btn.primary { background: #3a3530; color: #F5F0E8; border-color: #3a3530; }
+  .nav-btn.primary:hover { background: #2a2720; }
+
+  .dot-nav { display: flex; gap: 6px; align-items: center; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: #d9d0c4; transition: all 0.2s; }
+  .dot.active { background: #7a6e65; width: 16px; border-radius: 3px; }
+  .dot.done { background: #b5a898; }
+
+  /* Section pills */
+  .section-heads { display: flex; gap: 8px; justify-content: center; margin-bottom: 2.5rem; flex-wrap: wrap; }
+  .sec-pill { font-size: 11px; letter-spacing: 0.1em; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
+  .sec-pill.done { background: #d6ccbf; color: #7a6e65; }
+  .sec-pill.active { background: #3a3530; color: #F5F0E8; }
+  .sec-pill.todo { background: #EEE9E0; color: #b5a898; border: 0.5px solid #d9d0c4; }
+
+  /* Result screen */
+  .result-screen { text-align: center; }
+
+  .type-icon-wrap { margin: 0 auto 1.2rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+  .type-icon-wrap svg { width: 64px; height: 64px; fill: #3a3530; }
+
+  .type-display { margin: 0.5rem 0 1rem; }
+  .type-letters { font-size: 52px; font-weight: 400; letter-spacing: 0.15em; color: #3a3530; line-height: 1; }
+  .type-name { font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: #9c9186; margin-top: 10px; }
+
+  .type-divider { width: 40px; height: 1px; background: #d9d0c4; margin: 1.5rem auto; }
+
+  .result-card {
+    background: #EEE9E0;
+    border: 0.5px solid #d9d0c4;
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: left;
+    margin: 1.5rem 0;
+  }
+  .result-card p { font-size: 16px; line-height: 1.75; color: #5a5148; }
+
+  .traits-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1.5rem; }
+  .trait-block { background: #F5F0E8; border: 0.5px solid #d9d0c4; border-radius: 10px; padding: 12px 14px; }
+  .trait-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #b5a898; margin-bottom: 5px; }
+  .trait-list { font-size: 13px; color: #5a5148; line-height: 1.6; }
+
+  .people-row { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 0.5px solid #d9d0c4; }
+  .people-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #b5a898; margin-bottom: 10px; }
+  .people-list { display: flex; flex-direction: column; gap: 8px; }
+  .person-item { display: flex; align-items: center; gap: 10px; }
+  .person-dot { width: 32px; height: 32px; border-radius: 50%; background: #d6ccbf; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: #7a6e65; flex-shrink: 0; letter-spacing: 0.04em; }
+  .person-name { font-size: 13px; font-weight: 500; color: #5a5148; }
+
+  .careers-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1rem; }
+  .career-tag { background: #F5F0E8; border: 0.5px solid #d9d0c4; border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #7a6e65; letter-spacing: 0.03em; }
+
+  .score-bars { margin: 1.5rem 0; }
+  .score-track { flex: 1; height: 4px; background: #e0d8cc; border-radius: 2px; position: relative; }
+  .score-marker { position: absolute; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #3a3530; transform: translateX(-50%); }
+
+  .restart-btn {
+    background: transparent;
+    border: 0.5px solid #c5bab0;
+    border-radius: 8px;
+    padding: 11px 28px;
+    font-size: 14px;
+    color: #7a6e65;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.18s ease;
+    margin-top: 1.5rem;
+    font-family: Georgia, serif;
+  }
+  .restart-btn:hover { background: #e6ddd1; color: #3a3530; }
+
+  .fade-in { animation: fadeIn 0.35s ease forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="header">
+    <h1>Personality</h1>
+    <p>Know your type</p>
+  </div>
+  <div id="quiz-area"></div>
+</div>
+
+<script>
+const questions = [
+  { q:"You feel something strong, but you do not understand it yet. What usually helps you understand it?", a:"I need quiet time alone before I can understand what I feel.", b:"I understand it better when I talk to someone I trust.", section:"E vs I" },
+  { q:"You are at a party with close friends and some people you do not know. What do you naturally do first?", a:"I open myself to new people and join different conversations.", b:"I stay near the people I already feel comfortable with.", section:"E vs I" },
+  { q:"Something good happens to you, and your heart feels full. What feels more natural?", a:"I want to share it with someone soon.", b:"I want to keep it to myself first and enjoy it privately.", section:"E vs I" },
+  { q:"You spend a whole day mostly alone with your own thoughts. How does it usually affect you?", a:"I feel calm, rested, and more like myself.", b:"I start to feel disconnected and want to be around people.", section:"E vs I" },
+  { q:"You are trying to understand who you are becoming. What helps more?", a:"Hearing myself talk about it with someone.", b:"Sitting with my thoughts until they become clear.", section:"E vs I" },
+  { q:"You visit an old family home. What do you notice first?", a:"The rooms, smells, sounds, food, and small details.", b:"The memories, mood, and meaning the place seems to hold.", section:"S vs N" },
+  { q:"A friend keeps repeating the same mistake. What do you try to understand first?", a:"Why this pattern keeps happening in their life.", b:"What exactly happened each time.", section:"S vs N" },
+  { q:"You look at an old family photo. What do you think about first?", a:"The people, clothes, place, and real details in the photo.", b:"The story behind it and what those people may have felt.", section:"S vs N" },
+  { q:"Someone close to you starts acting differently, but they do not explain why. What do you trust more?", a:"The small clues that suggest something deeper is going on.", b:"What they actually say and do.", section:"S vs N" },
+  { q:"You think about your future late at night. What comes first in your mind?", a:"What is realistic based on your life right now.", b:"What your life could become if your choices, habits, or direction changed.", section:"S vs N" },
+  { q:"Someone you care about is hurt and asks what you think. What comes first for you?", a:"I want to help them feel understood before anything else.", b:"I want to help them see the situation clearly.", section:"T vs F" },
+  { q:"Two people you love are both upset with each other. What do you look for first?", a:"What is fair, true, and reasonable.", b:"What each person is feeling and needing.", section:"T vs F" },
+  { q:"Someone close to you hurts you, but you still care about them. What matters more when you speak?", a:"Being honest and clear about what was wrong.", b:"Being careful with their feelings while I explain mine.", section:"T vs F" },
+  { q:"You make a hard choice that affects other people. What helps you feel at peace?", a:"Knowing my choice was fair and made sense.", b:"Knowing my choice respected people's feelings and values.", section:"T vs F" },
+  { q:"A conversation becomes emotional and tense. What do you pay attention to first?", a:"The relationship and the feelings involved.", b:"The truth and the facts of the situation.", section:"T vs F" },
+  { q:"Life feels uncertain, and you do not know what will happen next. What helps you feel safer?", a:"Staying flexible and taking things as they come.", b:"Making a plan so I know what to do next.", section:"J vs P" },
+  { q:"You have many unfinished things in your life. What bothers you more?", a:"The unfinished things, because they keep pulling at my mind.", b:"The pressure to finish everything before I feel ready.", section:"J vs P" },
+  { q:"A friend invites you to do something today without much warning. What feels more natural?", a:"I want to see where the moment takes me.", b:"I want to know the details before I decide.", section:"J vs P" },
+  { q:"You have many possible paths in front of you. What feels harder?", a:"Choosing too early and losing other possibilities.", b:"Staying unsure for too long and not moving forward.", section:"J vs P" },
+  { q:"A family plan suddenly changes. What helps you feel calm again?", a:"Making a new plan quickly.", b:"Adjusting and letting things unfold.", section:"J vs P" }
+];
+
+const scoring = {
+  EI: [{A:'I',B:'E'},{A:'E',B:'I'},{A:'E',B:'I'},{A:'I',B:'E'},{A:'E',B:'I'}],
+  SN: [{A:'S',B:'N'},{A:'N',B:'S'},{A:'S',B:'N'},{A:'N',B:'S'},{A:'S',B:'N'}],
+  TF: [{A:'F',B:'T'},{A:'T',B:'F'},{A:'T',B:'F'},{A:'T',B:'F'},{A:'F',B:'T'}],
+  JP: [{A:'P',B:'J'},{A:'J',B:'P'},{A:'P',B:'J'},{A:'P',B:'J'},{A:'J',B:'P'}]
+};
+
+const typeIcons = {
+  INTJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 5 C28 5 10 25 10 48 C10 62 17 74 28 82 L28 90 C28 93 30 95 33 95 L67 95 C70 95 72 93 72 90 L72 82 C83 74 90 62 90 48 C90 25 72 5 50 5Z M38 88 L38 80 L62 80 L62 88 Z M65 75 L35 75 L35 70 L65 70 Z"/></svg>`,
+  INTP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="10"/><ellipse cx="50" cy="50" rx="40" ry="14" fill="none" stroke-width="6" stroke="currentColor"/><ellipse cx="50" cy="50" rx="40" ry="14" fill="none" stroke-width="6" stroke="currentColor" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="40" ry="14" fill="none" stroke-width="6" stroke="currentColor" transform="rotate(120 50 50)"/></svg>`,
+  ENTJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10 75 L25 30 L50 50 L75 30 L90 75 Z"/><rect x="5" y="78" width="90" height="10" rx="3"/></svg>`,
+  ENTP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="50" y1="15" x2="50" y2="5" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M28 28 C28 28 15 38 15 52 C15 66 26 77 38 80 C38 80 35 88 30 92 L70 92 C65 88 62 80 62 80 C74 77 85 66 85 52 C85 38 72 28 72 28 C65 22 58 18 50 18 C42 18 35 22 28 28Z"/><line x1="35" y1="8" x2="32" y2="18" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><line x1="65" y1="8" x2="68" y2="18" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>`,
+  INFJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 20 C25 20 10 40 10 50 C10 60 25 80 50 80 C75 80 90 60 90 50 C90 40 75 20 50 20Z"/><circle cx="50" cy="50" r="14" fill="#F5F0E8"/><circle cx="50" cy="50" r="7"/></svg>`,
+  INFP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 85 C50 85 15 62 15 38 C15 25 27 15 38 18 C43 20 47 24 50 28 C53 24 57 20 62 18 C73 15 85 25 85 38 C85 62 50 85 50 85Z"/></svg>`,
+  ENFJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 5 L55 20 L70 10 L62 24 L80 22 L67 32 L80 45 L63 40 L65 58 L50 48 L35 58 L37 40 L20 45 L33 32 L20 22 L38 24 L30 10 L45 20 Z"/></svg>`,
+  ENFP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 C35 15 20 28 18 42 C16 52 20 60 28 67 C22 72 18 80 20 88 C28 82 36 80 44 82 C46 88 48 94 50 95 C52 94 54 88 56 82 C64 80 72 82 80 88 C82 80 78 72 72 67 C80 60 84 52 82 42 C80 28 65 15 50 15Z M35 45 C35 40 38 37 42 37 C46 37 48 40 48 45 M52 45 C52 40 54 37 58 37 C62 37 65 40 65 45 M35 60 C40 68 60 68 65 60"/></svg>`,
+  ISTJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 L90 30 L90 70 L50 92 L10 70 L10 30 Z"/><path d="M50 8 L90 30 L90 70 L50 92 L10 70 L10 30 Z" fill="#F5F0E8" transform="scale(0.55) translate(41 41)"/></svg>`,
+  ISFJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 15 L15 62 C15 78 32 90 50 95 C68 90 85 78 85 62 L85 15 Z"/></svg>`,
+  ESTJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="55" width="80" height="38" rx="4"/><path d="M10 55 L50 15 L90 55 Z"/><line x1="35" y1="70" x2="35" y2="93" stroke="#F5F0E8" stroke-width="5"/><line x1="50" y1="70" x2="50" y2="93" stroke="#F5F0E8" stroke-width="5"/><line x1="65" y1="70" x2="65" y2="93" stroke="#F5F0E8" stroke-width="5"/></svg>`,
+  ESFJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M25 35 C15 35 8 42 8 52 C8 62 15 69 25 69 C30 69 35 67 38 63 C40 67 45 70 50 70 C55 70 60 67 62 63 C65 67 70 69 75 69 C85 69 92 62 92 52 C92 42 85 35 75 35 C70 35 65 37 62 42 C60 37 55 34 50 34 C45 34 40 37 38 42 C35 37 30 35 25 35Z"/><path d="M30 75 C35 82 42 87 50 88 C58 87 65 82 70 75"/></svg>`,
+  ISTP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 20 L30 50 L20 50 L50 80 L80 50 L70 50 L70 20 Z"/><rect x="20" y="82" width="60" height="10" rx="3"/></svg>`,
+  ISFP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 80 L40 20 L50 45 L60 20 L85 80 Z"/><circle cx="50" cy="55" r="8"/></svg>`,
+  ESTP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="50,8 62,38 95,38 70,58 80,90 50,70 20,90 30,58 5,38 38,38"/></svg>`,
+  ESFP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 C35 10 22 20 18 35 C15 25 8 20 8 30 C8 45 20 50 30 50 C20 60 15 72 20 82 C28 95 50 95 50 95 C50 95 72 95 80 82 C85 72 80 60 70 50 C80 50 92 45 92 30 C92 20 85 25 82 35 C78 20 65 10 50 10Z"/></svg>`
+};
+
+const descriptions = {
+  ISTJ:{name:"The Logistician",desc:"Steady, practical, and responsible. You trust what is proven, clear, and realistic and others rely on you because you take commitments seriously. Care shows through consistency, not performance.",strengths:["Reliable and dependable","Highly disciplined","Careful with details","Deeply loyal","Organized and methodical"],weaknesses:["Can be rigid and inflexible","Overly serious at times","Resistant to change","Struggles with emotional expression","May miss the bigger picture"],careers:["Accountant","Operations Manager","Data Analyst"],people:["Queen Elizabeth II","Warren Buffett","George Washington"]},
+  ISFJ:{name:"The Defender",desc:"Gentle, loyal, and protective. You notice small details about people and remember what matters to them. You may not seek attention, but you often become the emotional foundation of your relationships.",strengths:["Deeply caring and empathetic","Loyal and committed","Patient and steady","Highly observant of others","Practical and dependable"],weaknesses:["Prone to people-pleasing","Avoids conflict too often","Carries too much alone","Struggles to say no","Takes criticism personally"],careers:["Nurse","Teacher","HR Assistant"],people:["Mother Teresa","Kate Middleton","Rosa Parks"]},
+  INFJ:{name:"The Advocate",desc:"Deep, idealistic, and insight-driven. You want to understand people beneath the surface and feel drawn to healing or guiding in some meaningful way. Warm and compassionate, yet deeply private.",strengths:["Deeply insightful about people","Empathetic and compassionate","Principled and visionary","Creative and imaginative","Inspiring to others"],weaknesses:["Prone to overthinking","Burns out easily","Expects too much of self","Can become too secretive","Struggles with criticism"],careers:["Counselor","Writer","Nonprofit Strategist"],people:["Martin Luther King Jr.","Nelson Mandela","Mahatma Gandhi"]},
+  INTJ:{name:"The Architect",desc:"Strategic, independent, and future-focused. You see patterns and long-term possibilities before others notice them. Reserved or intense by nature, you prefer meaningful depth over surface interaction.",strengths:["Strategic and forward-thinking","Highly analytical","Independent and self-driven","Focused and goal-oriented","Deeply knowledgeable"],weaknesses:["Can appear cold or distant","Perfectionistic to a fault","Impatient with others","Overly self-critical","Struggles with emotions"],careers:["Systems Architect","Research Scientist","Strategic Planner"],people:["Nikola Tesla","Elon Musk","Isaac Newton"]},
+  ISTP:{name:"The Virtuoso",desc:"Calm, observant, and practical. You understand life through direct experience and hands-on problem-solving. You value freedom, skill, and figuring out how things work, often surprising others with quiet capability.",strengths:["Calm under pressure","Highly practical and skilled","Adaptable and resourceful","Observant and perceptive","Independent thinker"],weaknesses:["Emotionally guarded","Gets restless easily","Takes unnecessary risks","Commits with difficulty","Can seem indifferent"],careers:["Engineer","Mechanic","Emergency Responder"],people:["Clint Eastwood","Bruce Lee","Amelia Earhart"]},
+  ISFP:{name:"The Adventurer",desc:"Sensitive, artistic, and quietly passionate. You care about authenticity, beauty, and living in a way that feels true to your values. Soft on the outside and deeply loyal to what matters on the inside.",strengths:["Creatively expressive","Gentle and kind-hearted","Flexible and open-minded","Value-driven and sincere","Warm and caring"],weaknesses:["Avoids conflict","Struggles with long-term planning","Feels easily restricted","Can be overly self-critical","Difficulty with assertiveness"],careers:["Graphic Designer","Photographer","Occupational Therapist"],people:["Michael Jackson","Frida Kahlo","Audrey Hepburn"]},
+  INFP:{name:"The Mediator",desc:"Imaginative, idealistic, and emotionally deep. You search for meaning, truth, and a life that matches your inner values. Your inner world is rich and personal and your feelings and beliefs run stronger than they appear.",strengths:["Deeply empathetic","Highly creative and imaginative","Sincere and authentic","Idealistic and passionate","Open-minded and curious"],weaknesses:["Can be overly idealistic","Easily discouraged","Avoids practical detail","Takes things too personally","Difficulty with deadlines"],careers:["Writer","Counselor","Social Worker"],people:["J.R.R. Tolkien","Vincent van Gogh","William Shakespeare"]},
+  INTP:{name:"The Logician",desc:"Curious, analytical, and an independent thinker. You enjoy understanding ideas deeply and questioning assumptions others accept too quickly. Your mind is most alive when exploring complex territory without shallow rules.",strengths:["Highly logical and analytical","Deeply curious","Original thinker","Objective and precise","Open to new ideas"],weaknesses:["Prone to overthinking","Can seem emotionally detached","Struggles with follow-through","Avoids social situations","Overly critical of others"],careers:["Software Developer","Data Scientist","Researcher"],people:["Albert Einstein","Charles Darwin","Bill Gates"]},
+  ESTP:{name:"The Entrepreneur",desc:"Bold, energetic, and action-oriented. You learn best through direct experience and respond quickly to what is happening around you. You prefer doing over overthinking, brave, persuasive, and fast-moving.",strengths:["Confident and decisive","Highly adaptable","Persuasive and energetic","Quick-thinking under pressure","Observant and perceptive"],weaknesses:["Can be impulsive","Gets bored easily","May overlook details","Risk-taking to a fault","Struggles with long-term focus"],careers:["Entrepreneur","Sales Representative","Paramedic"],people:["Ernest Hemingway","Theodore Roosevelt","Madonna"]},
+  ESFP:{name:"The Entertainer",desc:"Expressive, warm, and full of life. You bring energy into the present moment and know how to make others feel included. Emotionally responsive and socially aware, you want life to feel alive, open, and real.",strengths:["Warm and enthusiastic","Naturally charming","Lives fully in the present","Emotionally perceptive","Brings joy to others"],weaknesses:["Avoids long-term planning","Seeks constant stimulation","Struggles with discipline","Can be overly dramatic","Sensitive to criticism"],careers:["Performer","Event Planner","Hospitality Manager"],people:["Marilyn Monroe","Elvis Presley","Jamie Oliver"]},
+  ENFP:{name:"The Campaigner",desc:"Imaginative, enthusiastic, and emotionally expressive. You see potential in people, ideas, and future possibilities, energized by meaning, connection, and personal growth. Inspiring to those who need someone to believe in them.",strengths:["Deeply creative and imaginative","Enthusiastic and energetic","Highly empathetic","Inspiring and motivating","Open-minded and curious"],weaknesses:["Can be scattered or unfocused","Easily emotionally overwhelmed","Inconsistent follow-through","Overthinks decisions","Struggles with routine"],careers:["Marketing Strategist","Creative Director","Life Coach"],people:["Robin Williams","Ellen DeGeneres","Walt Disney"]},
+  ENTP:{name:"The Debater",desc:"Curious, inventive, and mentally quick. You enjoy exploring ideas, challenging assumptions, and finding new ways to see a problem. Energetic and restless, you dislike feeling boxed in and thrive on intellectual friction.",strengths:["Inventive and original","Witty and quick-minded","Highly adaptable","Sees multiple perspectives","Energetic and confident"],weaknesses:["Argues for the sake of it","Becomes restless easily","Leaves things unfinished","Can be insensitive","Struggles with authority"],careers:["Entrepreneur","Product Manager","Innovation Consultant"],people:["Mark Twain","Leonardo da Vinci","Thomas Edison"]},
+  ESTJ:{name:"The Executive",desc:"Direct, organized, and practical. You like clear standards, structure, and efficient action. When something needs leadership or order, you step forward naturally. You want things to work and people to take their duties seriously.",strengths:["Highly organized","Decisive and confident","Responsible and reliable","Strong natural leader","Excellent at execution"],weaknesses:["Can be controlling","Impatient with others","Inflexible under pressure","Struggles with emotions","May seem harsh or blunt"],careers:["Project Manager","Operations Director","Business Administrator"],people:["Judge Judy","Henry Ford","Sonia Sotomayor"]},
+  ESFJ:{name:"The Consul",desc:"Warm, responsible, and socially aware. You care deeply about harmony, belonging, and making sure people feel supported, noticing emotional needs quickly and becoming the natural organizer in your communities.",strengths:["Warm and supportive","Reliable and responsible","Strong social awareness","Naturally cooperative","Creates harmony easily"],weaknesses:["Prone to people-pleasing","Takes criticism personally","Needs external approval","Avoids difficult truths","Can be overly traditional"],careers:["Teacher","Nurse","Community Manager"],people:["Taylor Swift","Jennifer Garner","Bill Clinton"]},
+  ENFJ:{name:"The Protagonist",desc:"Empathetic, expressive, and purpose-driven. You see potential in others and feel drawn to helping people grow. A natural guide who understands emotions and group energy well, though you may give more than you keep.",strengths:["Deeply empathetic","Naturally inspiring and charismatic","Excellent communicator","Supportive and encouraging","Visionary and purposeful"],weaknesses:["Overextends and burns out","Becomes too personally involved","Neglects own needs","Struggles with criticism","Can be overly idealistic"],careers:["Counselor","Teacher","Team Leader"],people:["Oprah Winfrey","Barack Obama","Nelson Mandela"]},
+  ENTJ:{name:"The Commander",desc:"Ambitious, strategic, and decisive. You see goals clearly and know how to organize people, systems, and plans to reach them. Comfortable making decisions and pushing forward, your challenge is balancing achievement with patience.",strengths:["Strategic and visionary","Highly confident and decisive","Strong natural leader","Goal-oriented and driven","Excellent at organizing people"],weaknesses:["Can be intense or overbearing","Impatient with others","Blunt to the point of harshness","Overly focused on success","Struggles with vulnerability"],careers:["Executive Manager","Management Consultant","Entrepreneur"],people:["Steve Jobs","Margaret Thatcher","Julius Caesar"]}
+};
+
+let answers = new Array(20).fill(null);
+let current = 0;
+const sections = ["E vs I","S vs N","T vs F","J vs P"];
+const sectionLabels = ["Energy","Perception","Judgment","Structure"];
+
+function getSectionIndex(i) { return Math.floor(i / 5); }
+
+function getType() {
+  let c = {E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  for(let i=0;i<5;i++){
+    if(answers[i]) c[scoring.EI[i][answers[i]]]++;
+    if(answers[i+5]) c[scoring.SN[i][answers[i+5]]]++;
+    if(answers[i+10]) c[scoring.TF[i][answers[i+10]]]++;
+    if(answers[i+15]) c[scoring.JP[i][answers[i+15]]]++;
+  }
+  return (c.E>=c.I?'E':'I')+(c.S>=c.N?'S':'N')+(c.T>=c.F?'T':'F')+(c.J>=c.P?'J':'P');
+}
+
+function getScores() {
+  let s = {E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  for(let i=0;i<5;i++){
+    if(answers[i]) s[scoring.EI[i][answers[i]]]++;
+    if(answers[i+5]) s[scoring.SN[i][answers[i+5]]]++;
+    if(answers[i+10]) s[scoring.TF[i][answers[i+10]]]++;
+    if(answers[i+15]) s[scoring.JP[i][answers[i+15]]]++;
+  }
+  return s;
+}
+
+function initials(name) {
+  return name.split(' ').slice(0,2).map(w=>w[0]).join('');
+}
+
+function renderResult() {
+  const type = getType();
+  const s = getScores();
+  const d = descriptions[type];
+  const svgIcon = typeIcons[type];
+  const area = document.getElementById('quiz-area');
+
+  const dims = [
+    {l:'E',r:'I',ls:s.E,rs:s.I,lLabel:'Extrovert',rLabel:'Introvert'},
+    {l:'S',r:'N',ls:s.S,rs:s.N,lLabel:'Sensing',rLabel:'Intuition'},
+    {l:'T',r:'F',ls:s.T,rs:s.F,lLabel:'Thinking',rLabel:'Feeling'},
+    {l:'J',r:'P',ls:s.J,rs:s.P,lLabel:'Judging',rLabel:'Perceiving'}
+  ];
+
+  area.innerHTML = `
+    <div class="result-screen fade-in">
+      <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#9c9186;margin-bottom:1rem">Your type</div>
+      <div class="type-icon-wrap">${svgIcon}</div>
+      <div class="type-display">
+        <div class="type-letters">${type}</div>
+        <div class="type-name">${d.name}</div>
+      </div>
+
+      <div class="score-bars">
+        ${dims.map(dim=>{
+          const total = dim.ls + dim.rs;
+          const pct = total > 0 ? Math.round((dim.ls/total)*100) : 50;
+          return `<div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#9c9186;letter-spacing:0.06em;margin-bottom:6px">
+              <span>${dim.lLabel.toUpperCase()} ${dim.l}</span><span>${dim.r} ${dim.rLabel.toUpperCase()}</span>
+            </div>
+            <div class="score-track"><div class="score-marker" style="left:${pct}%"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="type-divider"></div>
+
+      <div class="result-card">
+        <p>${d.desc}</p>
+        <div class="traits-row">
+          <div class="trait-block">
+            <div class="trait-label">Strengths</div>
+            <div class="trait-list">${d.strengths.join('<br>')}</div>
+          </div>
+          <div class="trait-block">
+            <div class="trait-label">Watch for</div>
+            <div class="trait-list">${d.weaknesses.join('<br>')}</div>
+          </div>
+        </div>
+        <div style="margin-top:1.5rem">
+          <div class="trait-label" style="margin-bottom:8px">Often suited for</div>
+          <div class="careers-row">${d.careers.map(c=>`<span class="career-tag">${c}</span>`).join('')}</div>
+        </div>
+        <div class="people-row">
+          <div class="people-label">Often associated with</div>
+          <div class="people-list">
+            ${d.people.map(p=>`
+              <div class="person-item">
+                <div class="person-dot">${initials(p)}</div>
+                <div class="person-name">${p}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+
+      <button class="restart-btn" onclick="restart()">Retake the test</button>
+    </div>
+  `;
+}
+
+function renderQuestion() {
+  const q = questions[current];
+  const secIdx = getSectionIndex(current);
+  const totalAnswered = answers.filter(a=>a!==null).length;
+  const pct = Math.round((totalAnswered / 20) * 100);
+  const area = document.getElementById('quiz-area');
+
+  const dots = questions.map((_,i)=>{
+    if(answers[i]) return `<div class="dot done"></div>`;
+    if(i===current) return `<div class="dot active"></div>`;
+    return `<div class="dot"></div>`;
+  });
+
+  const pillsHtml = sections.map((s,i)=>{
+    const cls = i < secIdx ? 'done' : i === secIdx ? 'active' : 'todo';
+    return `<span class="sec-pill ${cls}">${sectionLabels[i]}</span>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="fade-in">
+      <div class="section-heads">${pillsHtml}</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>${totalAnswered} of 20</span><span>${pct}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="question-block">
+        <div style="font-size:11px;color:#b5a898;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">Q${current+1}</div>
+        <div class="question-text">${q.q}</div>
+        <div class="options">
+          <button class="option-btn${answers[current]==='A'?' selected':''}" onclick="choose('A')">
+            <span class="option-letter">A</span><span>${q.a}</span>
+          </button>
+          <button class="option-btn${answers[current]==='B'?' selected':''}" onclick="choose('B')">
+            <span class="option-letter">B</span><span>${q.b}</span>
+          </button>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="nav-btn" onclick="prev()" ${current===0?'disabled':''}>Back</button>
+        <div class="dot-nav">${dots.slice(Math.max(0,current-3),current+4).join('')}</div>
+        ${current<19
+          ? `<button class="nav-btn primary" onclick="next()" ${!answers[current]?'disabled':''}>Next</button>`
+          : `<button class="nav-btn primary" onclick="finish()" ${!answers[current]?'disabled':''}>See result</button>`
+        }
+      </div>
+    </div>
+  `;
+}
+
+function choose(opt) {
+  answers[current] = opt;
+  renderQuestion();
+  if(current < 19) setTimeout(()=>{ current++; renderQuestion(); }, 280);
+}
+
+function prev() { if(current>0){ current--; renderQuestion(); } }
+function next() { if(answers[current]&&current<19){ current++; renderQuestion(); } }
+function finish() { if(answers[current]) renderResult(); }
+function restart() { answers = new Array(20).fill(null); current=0; renderQuestion(); }
+
+renderQuestion();
+</script>
+</body>
+</html>
