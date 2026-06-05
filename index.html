@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#F5F0E8">
+<title>MBTI Personality Test</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100%;
+  }
+  body {
+    background: #F5F0E8;
+    font-family: Georgia, serif;
+    min-height: 100vh;
+    color: #3a3530;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #F5F0E8;
+    background-image: url('bg-landmark-sketch.png');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: auto 100vh;
+    opacity: 0.13;
+    pointer-events: none;
+    z-index: 0;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+  }
+  .app { max-width: 620px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; position: relative; z-index: 1; }
+
+  .header { text-align: center; margin-bottom: 3rem; }
+  .progress-wrap, .question-block, .intro-screen, .result-screen { position: relative; }
+  .header h1 { font-size: 13px; font-weight: 500; letter-spacing: 0.18em; color: #9c9186; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .header p { font-size: 22px; font-weight: 400; color: #3a3530; line-height: 1.4; }
+
+  .progress-wrap { margin-bottom: 2.5rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #a09585; margin-bottom: 8px; letter-spacing: 0.05em; }
+  .progress-bar { height: 2px; background: #e0d8cc; border-radius: 2px; }
+  .progress-fill { height: 2px; background: #b5a898; border-radius: 2px; transition: width 0.4s ease; }
+
+  .question-block { margin-bottom: 2.5rem; }
+  .question-text { font-size: 17px; line-height: 1.65; color: #3a3530; margin-bottom: 1.2rem; font-weight: 400; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    background: rgba(238, 233, 224, 0.96);
+    border: 0.5px solid #d9d0c4;
+    border-radius: 10px;
+    padding: 14px 18px;
+    text-align: left;
+    font-size: 15px;
+    color: #5a5148;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    line-height: 1.5;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-family: Georgia, serif;
+  }
+  .option-btn:hover { background: #e6ddd1; border-color: #c5bab0; color: #3a3530; }
+  .option-btn.selected { background: #d6ccbf; border-color: #b5a898; color: #3a3530; }
+  .option-letter { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; color: #b5a898; min-width: 14px; margin-top: 2px; text-transform: uppercase; }
+  .option-btn.selected .option-letter { color: #7a6e65; }
+
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 2.5rem; }
+  .nav-btn {
+    background: rgba(245, 240, 232, 0.88);
+    border: 0.5px solid #c5bab0;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 14px;
+    color: #7a6e65;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    letter-spacing: 0.04em;
+    font-family: Georgia, serif;
+  }
+  .nav-btn:hover { background: #e6ddd1; color: #3a3530; }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-btn.primary { background: #3a3530; color: #F5F0E8; border-color: #3a3530; }
+  .nav-btn.primary:hover { background: #2a2720; }
+
+  .dot-nav { display: flex; gap: 6px; align-items: center; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: #d9d0c4; transition: all 0.2s; }
+  .dot.active { background: #7a6e65; width: 16px; border-radius: 3px; }
+  .dot.done { background: #b5a898; }
+
+  /* Section pills */
+  .section-heads { display: flex; gap: 8px; justify-content: center; margin-bottom: 2.5rem; flex-wrap: wrap; }
+  .sec-pill { font-size: 11px; letter-spacing: 0.1em; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
+  .sec-pill.done { background: #d6ccbf; color: #7a6e65; }
+  .sec-pill.active { background: #3a3530; color: #F5F0E8; }
+  .sec-pill.todo { background: rgba(238, 233, 224, 0.96); color: #b5a898; border: 0.5px solid #d9d0c4; }
+
+  /* Result screen */
+  .result-screen { text-align: center; }
+
+  .type-icon-wrap { margin: 0 auto 1.2rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+  .type-icon-wrap svg { width: 64px; height: 64px; fill: #3a3530; }
+
+  .type-display { margin: 0.5rem 0 1rem; }
+  .type-letters { font-size: 52px; font-weight: 400; letter-spacing: 0.15em; color: #3a3530; line-height: 1; }
+  .type-name { font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: #9c9186; margin-top: 10px; }
+
+  .result-card {
+    background: rgba(238, 233, 224, 0.96);
+    border: 0.5px solid #d9d0c4;
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: left;
+    margin: 1.5rem 0;
+  }
+  .result-card p { font-size: 16px; line-height: 1.75; color: #5a5148; }
+  .hidden-insight { margin-top: 0.85rem; }
+
+  .traits-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1.5rem; }
+  .trait-block { background: rgba(245, 240, 232, 0.97); border: 0.5px solid #d9d0c4; border-radius: 10px; padding: 12px 14px; }
+  .trait-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #b5a898; margin-bottom: 5px; }
+  .trait-list { font-size: 13px; color: #5a5148; line-height: 1.6; }
+  .trait-list ul { margin: 0; padding-left: 1.15rem; }
+  .trait-list li { margin-bottom: 4px; }
+  .trait-list li:last-child { margin-bottom: 0; }
+  .trait-list li::marker { color: #b5a898; font-size: 0.85em; }
+  .result-section { margin-top: 1.5rem; }
+  .result-card .section-copy { font-size: 13px; line-height: 1.65; color: #5a5148; margin: 0; }
+  .result-detail-grid { margin-top: 1rem; }
+
+  .people-row { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 0.5px solid #d9d0c4; }
+  .people-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #b5a898; margin-bottom: 10px; }
+  .people-list { display: flex; flex-direction: column; gap: 8px; }
+  .person-item { display: flex; align-items: center; gap: 10px; }
+  .person-dot {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #d9d0c4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    box-shadow: 0 1px 4px rgba(58,53,48,0.14);
+  }
+  .person-dot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+    filter: grayscale(1) contrast(1.1);
+  }
+
+  .person-name { font-size: 13px; font-weight: 500; color: #5a5148; }
+
+  .person-text { display: flex; flex-direction: column; gap: 2px; }
+  .person-title { font-size: 11px; color: #9c9186; line-height: 1.35; letter-spacing: 0.02em; }
+
+  .careers-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1rem; }
+  .career-tag { background: rgba(245, 240, 232, 0.97); border: 0.5px solid #d9d0c4; border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #7a6e65; letter-spacing: 0.03em; }
+
+  .score-bars { margin: 1.5rem 0; }
+  .score-track { flex: 1; height: 4px; background: #e0d8cc; border-radius: 2px; position: relative; }
+  .score-marker { position: absolute; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #3a3530; transform: translateX(-50%); }
+
+  .restart-btn {
+    background: transparent;
+    border: 0.5px solid #c5bab0;
+    border-radius: 8px;
+    padding: 11px 28px;
+    font-size: 14px;
+    color: #7a6e65;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.18s ease;
+    margin-top: 1.5rem;
+    font-family: Georgia, serif;
+  }
+  .restart-btn:hover { background: #e6ddd1; color: #3a3530; }
+
+  /* Intro screen */
+  .intro-screen { text-align: center; padding: 1rem 0 2rem; }
+  .intro-badge { display: inline-block; background: rgba(245, 240, 232, 0.75); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #b5a898; border: 0.5px solid #d9d0c4; border-radius: 20px; padding: 4px 14px; margin-bottom: 2rem; }
+  .intro-title { font-size: 36px; font-weight: 400; color: #3a3530; line-height: 1.2; margin-bottom: 1rem; letter-spacing: 0.02em; }
+  .intro-sub { font-size: 15px; color: #7a6e65; line-height: 1.8; margin-bottom: 2.5rem; }
+  .intro-divider { width: 40px; height: 1px; background: #d9d0c4; margin: 2rem auto; }
+  .intro-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 2.5rem; }
+  .stat-block { background: rgba(238, 233, 224, 0.96); border: 0.5px solid #d9d0c4; border-radius: 12px; padding: 16px 10px; }
+  .stat-num { font-size: 22px; font-weight: 400; color: #3a3530; margin-bottom: 4px; }
+  .stat-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #9c9186; }
+  .intro-note { font-size: 13px; color: #a09585; line-height: 1.7; margin-bottom: 2rem; font-style: italic; }
+  .start-btn { background: #3a3530; color: #F5F0E8; border: none; border-radius: 10px; padding: 14px 40px; font-size: 15px; cursor: pointer; letter-spacing: 0.06em; transition: all 0.18s ease; font-family: Georgia, serif; }
+  .start-btn:hover { background: #2a2720; }
+
+
+  /* Loading screen */
+  .loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #F5F0E8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.65s ease, visibility 0.65s ease;
+  }
+  .loading-screen.hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .loading-content {
+    text-align: center;
+    padding: 2rem;
+    animation: loadingFloat 1.6s ease-in-out infinite alternate;
+  }
+  .loading-kicker {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #9c9186;
+    margin-bottom: 0.8rem;
+  }
+  .loading-title {
+    font-size: 34px;
+    line-height: 1.15;
+    color: #3a3530;
+    letter-spacing: 0.04em;
+    font-weight: 400;
+  }
+  .loading-made {
+    margin-top: 0.85rem;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: rgba(58, 53, 48, 0.42);
+    text-transform: uppercase;
+  }
+  .loading-line {
+    width: 150px;
+    height: 2px;
+    background: #e0d8cc;
+    border-radius: 999px;
+    margin: 1.4rem auto 0;
+    overflow: hidden;
+  }
+  .loading-line span {
+    display: block;
+    width: 42%;
+    height: 100%;
+    background: #3a3530;
+    border-radius: 999px;
+    animation: loadingSlide 1.05s ease-in-out infinite;
+  }
+  @keyframes loadingSlide {
+    0% { transform: translateX(-110%); }
+    100% { transform: translateX(260%); }
+  }
+  @keyframes loadingFloat {
+    from { transform: translateY(0); opacity: 0.88; }
+    to { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* Button motion */
+  .start-btn,
+  .nav-btn.primary,
+  .restart-btn,
+  .share-btn,
+  .premium-btn {
+    transform: scale(1);
+    transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .start-btn:hover,
+  .nav-btn.primary:hover,
+  .restart-btn:hover,
+  .share-btn:hover,
+  .premium-btn:hover {
+    transform: scale(1.055);
+    box-shadow: 0 8px 18px rgba(58, 53, 48, 0.12);
+  }
+  .start-btn:active,
+  .nav-btn.primary:active,
+  .restart-btn:active,
+  .share-btn:active,
+  .premium-btn:active {
+    transform: scale(0.985);
+  }
+
+  .fade-in { animation: fadeIn 0.35s ease forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .option-btn,
+  .nav-btn,
+  .intro-badge,
+  .stat-block,
+  .result-card,
+  .trait-block,
+  .career-tag,
+  .sec-pill.todo {
+    -webkit-backdrop-filter: blur(1.5px);
+    backdrop-filter: blur(1.5px);
+  }
+
+  @media (orientation: landscape) {
+    body::before {
+      background-position: center center;
+      background-size: auto 100vh;
+      opacity: 0.12;
+    }
+    .app {
+      max-width: 760px;
+      padding-left: 1.8rem;
+      padding-right: 1.8rem;
+    }
+  }
+
+  @media (min-width: 900px) {
+    body::before {
+      background-position: center center;
+      background-size: auto 100vh;
+      opacity: 0.115;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    body::before {
+      background-size: auto 105vh;
+      opacity: 0.105;
+    }
+  }
+
+  @media (max-width: 640px) {
+    body::before {
+      background-position: center center;
+      background-size: cover;
+      opacity: 0.15;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="loading-screen" class="loading-screen">
+  <div class="loading-content">
+    <div class="loading-kicker">Personality Style</div>
+    <div class="loading-title">16 Personality Style Test</div>
+    <div class="loading-made">made by Yparx1</div>
+    <div class="loading-line"><span></span></div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <div class="header">
+    <h1>Personality</h1>
+    <p>Know your type</p>
+  </div>
+  <div id="quiz-area"></div>
+</div>
+
+<script>
+const questions = [
+  { q:"You feel something strong, but you do not understand it yet. What usually helps you understand it?", a:"I need quiet time alone before I can understand what I feel.", b:"I understand it better when I talk to someone I trust.", section:"E vs I" },
+  { q:"You are at a party with close friends and some people you do not know. What do you naturally do first?", a:"I open myself to new people and join different conversations.", b:"I stay near the people I already feel comfortable with.", section:"E vs I" },
+  { q:"Something good happens to you, and your heart feels full. What feels more natural?", a:"I want to share it with someone soon.", b:"I want to keep it to myself first and enjoy it privately.", section:"E vs I" },
+  { q:"You spend a whole day mostly alone with your own thoughts. How does it usually affect you?", a:"I feel calm, rested, and more like myself.", b:"I start to feel disconnected and want to be around people.", section:"E vs I" },
+  { q:"You are trying to understand who you are becoming. What helps more?", a:"Hearing myself talk about it with someone.", b:"Sitting with my thoughts until they become clear.", section:"E vs I" },
+  { q:"You visit an old family home. What do you notice first?", a:"The rooms, smells, sounds, food, and small details.", b:"The memories, mood, and meaning the place seems to hold.", section:"S vs N" },
+  { q:"A friend keeps repeating the same mistake. What do you try to understand first?", a:"Why this pattern keeps happening in their life.", b:"What exactly happened each time.", section:"S vs N" },
+  { q:"You look at an old family photo. What do you think about first?", a:"The people, clothes, place, and real details in the photo.", b:"The story behind it and what those people may have felt.", section:"S vs N" },
+  { q:"Someone close to you starts acting differently, but they do not explain why. What do you trust more?", a:"The small clues that suggest something deeper is going on.", b:"What they actually say and do.", section:"S vs N" },
+  { q:"You think about your future late at night. What comes first in your mind?", a:"What is realistic based on your life right now.", b:"What your life could become if your choices, habits, or direction changed.", section:"S vs N" },
+  { q:"Someone you care about is hurt and asks what you think. What comes first for you?", a:"I want to help them feel understood before anything else.", b:"I want to help them see the situation clearly.", section:"T vs F" },
+  { q:"Two people you love are both upset with each other. What do you look for first?", a:"What is fair, true, and reasonable.", b:"What each person is feeling and needing.", section:"T vs F" },
+  { q:"Someone close to you hurts you, but you still care about them. What matters more when you speak?", a:"Being honest and clear about what was wrong.", b:"Being careful with their feelings while I explain mine.", section:"T vs F" },
+  { q:"You make a hard choice that affects other people. What helps you feel at peace?", a:"Knowing my choice was fair and made sense.", b:"Knowing my choice respected people's feelings and values.", section:"T vs F" },
+  { q:"A conversation becomes emotional and tense. What do you pay attention to first?", a:"The relationship and the feelings involved.", b:"The truth and the facts of the situation.", section:"T vs F" },
+  { q:"Your family or friends are planning something, but the details are still not final. What feels more natural to you?", a:"I feel better when the main plan is settled early, even if small things can still change.", b:"I feel better when the plan stays open, so there is room to decide later.", section:"J vs P" },
+  { q:"You have two good choices, and both could lead to something different. What do you usually prefer?", a:"I keep thinking and exploring until one choice feels right.", b:"I choose a direction so I can focus and move forward.", section:"J vs P" },
+  { q:"You are starting something new, but you do not know exactly how it will go. What feels more comfortable?", a:"I like having clear steps before I begin.", b:"I like learning what to do as I go.", section:"J vs P" },
+  { q:"You have many possible paths in front of you. What feels harder for you?", a:"Choosing too early and losing other possibilities.", b:"Staying unsure for too long and not moving forward.", section:"J vs P" },
+  { q:"A plan suddenly changes, and things do not happen the way you expected. What do you naturally do first?", a:"I make a new plan so things feel clear again.", b:"I adjust to the moment and see what works.", section:"J vs P" }
+];
+
+const scoring = {
+  EI: [{A:'I',B:'E'},{A:'E',B:'I'},{A:'E',B:'I'},{A:'I',B:'E'},{A:'E',B:'I'}],
+  SN: [{A:'S',B:'N'},{A:'N',B:'S'},{A:'S',B:'N'},{A:'N',B:'S'},{A:'S',B:'N'}],
+  TF: [{A:'F',B:'T'},{A:'T',B:'F'},{A:'T',B:'F'},{A:'T',B:'F'},{A:'F',B:'T'}],
+  JP: [{A:'J',B:'P'},{A:'P',B:'J'},{A:'J',B:'P'},{A:'P',B:'J'},{A:'J',B:'P'}]
+};
+
+const typeIcons = {
+  INTJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 5 C28 5 10 25 10 48 C10 62 17 74 28 82 L28 90 C28 93 30 95 33 95 L67 95 C70 95 72 93 72 90 L72 82 C83 74 90 62 90 48 C90 25 72 5 50 5Z M38 88 L38 80 L62 80 L62 88 Z M65 75 L35 75 L35 70 L65 70 Z"/></svg>`,
+  INTP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="10"/><ellipse cx="50" cy="50" rx="40" ry="14" fill="none" stroke-width="6" stroke="currentColor"/><ellipse cx="50" cy="50" rx="40" ry="14" fill="none" stroke-width="6" stroke="currentColor" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="40" ry="14" fill="none" stroke-width="6" stroke="currentColor" transform="rotate(120 50 50)"/></svg>`,
+  ENTJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10 75 L25 30 L50 50 L75 30 L90 75 Z"/><rect x="5" y="78" width="90" height="10" rx="3"/></svg>`,
+  ENTP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="50" y1="15" x2="50" y2="5" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M28 28 C28 28 15 38 15 52 C15 66 26 77 38 80 C38 80 35 88 30 92 L70 92 C65 88 62 80 62 80 C74 77 85 66 85 52 C85 38 72 28 72 28 C65 22 58 18 50 18 C42 18 35 22 28 28Z"/><line x1="35" y1="8" x2="32" y2="18" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><line x1="65" y1="8" x2="68" y2="18" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>`,
+  INFJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 20 C25 20 10 40 10 50 C10 60 25 80 50 80 C75 80 90 60 90 50 C90 40 75 20 50 20Z"/><circle cx="50" cy="50" r="14" fill="#F5F0E8"/><circle cx="50" cy="50" r="7"/></svg>`,
+  INFP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 85 C50 85 15 62 15 38 C15 25 27 15 38 18 C43 20 47 24 50 28 C53 24 57 20 62 18 C73 15 85 25 85 38 C85 62 50 85 50 85Z"/></svg>`,
+  ENFJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 5 L55 20 L70 10 L62 24 L80 22 L67 32 L80 45 L63 40 L65 58 L50 48 L35 58 L37 40 L20 45 L33 32 L20 22 L38 24 L30 10 L45 20 Z"/></svg>`,
+  ENFP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 C35 15 20 28 18 42 C16 52 20 60 28 67 C22 72 18 80 20 88 C28 82 36 80 44 82 C46 88 48 94 50 95 C52 94 54 88 56 82 C64 80 72 82 80 88 C82 80 78 72 72 67 C80 60 84 52 82 42 C80 28 65 15 50 15Z M35 45 C35 40 38 37 42 37 C46 37 48 40 48 45 M52 45 C52 40 54 37 58 37 C62 37 65 40 65 45 M35 60 C40 68 60 68 65 60"/></svg>`,
+  ISTJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 L90 30 L90 70 L50 92 L10 70 L10 30 Z"/><path d="M50 8 L90 30 L90 70 L50 92 L10 70 L10 30 Z" fill="#F5F0E8" transform="scale(0.55) translate(41 41)"/></svg>`,
+  ISFJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 15 L15 62 C15 78 32 90 50 95 C68 90 85 78 85 62 L85 15 Z"/></svg>`,
+  ESTJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="55" width="80" height="38" rx="4"/><path d="M10 55 L50 15 L90 55 Z"/><line x1="35" y1="70" x2="35" y2="93" stroke="#F5F0E8" stroke-width="5"/><line x1="50" y1="70" x2="50" y2="93" stroke="#F5F0E8" stroke-width="5"/><line x1="65" y1="70" x2="65" y2="93" stroke="#F5F0E8" stroke-width="5"/></svg>`,
+  ESFJ: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M25 35 C15 35 8 42 8 52 C8 62 15 69 25 69 C30 69 35 67 38 63 C40 67 45 70 50 70 C55 70 60 67 62 63 C65 67 70 69 75 69 C85 69 92 62 92 52 C92 42 85 35 75 35 C70 35 65 37 62 42 C60 37 55 34 50 34 C45 34 40 37 38 42 C35 37 30 35 25 35Z"/><path d="M30 75 C35 82 42 87 50 88 C58 87 65 82 70 75"/></svg>`,
+  ISTP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 20 L30 50 L20 50 L50 80 L80 50 L70 50 L70 20 Z"/><rect x="20" y="82" width="60" height="10" rx="3"/></svg>`,
+  ISFP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 80 L40 20 L50 45 L60 20 L85 80 Z"/><circle cx="50" cy="55" r="8"/></svg>`,
+  ESTP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="50,8 62,38 95,38 70,58 80,90 50,70 20,90 30,58 5,38 38,38"/></svg>`,
+  ESFP: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 C35 10 22 20 18 35 C15 25 8 20 8 30 C8 45 20 50 30 50 C20 60 15 72 20 82 C28 95 50 95 50 95 C50 95 72 95 80 82 C85 72 80 60 70 50 C80 50 92 45 92 30 C92 20 85 25 82 35 C78 20 65 10 50 10Z"/></svg>`
+};
+
+const personIcons = {
+  // ISTJ
+  "Queen Elizabeth II": `<svg viewBox="0 0 50 50"><path d="M25 4 L28 12 L22 12 Z M20 12 L30 12 L32 20 L18 20 Z M15 20 L35 20 L37 30 L13 30 Z M11 30 L39 30 L39 34 L11 34 Z"/></svg>`,
+  "Warren Buffett": `<svg viewBox="0 0 50 50"><polyline points="5,38 15,20 22,30 30,12 38,22 45,8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="5" y1="42" x2="45" y2="42" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  "George Washington": `<svg viewBox="0 0 50 50"><rect x="20" y="28" width="10" height="16"/><rect x="14" y="22" width="22" height="8"/><path d="M18 22 L25 8 L32 22 Z"/><rect x="10" y="40" width="30" height="4"/></svg>`,
+  // ISFJ
+  "Mother Teresa": `<svg viewBox="0 0 50 50"><path d="M25 5 C18 5 13 10 13 18 C13 25 18 32 25 35 C32 32 37 25 37 18 C37 10 32 5 25 5Z" fill="none" stroke="currentColor" stroke-width="3"/><line x1="25" y1="12" x2="25" y2="28" stroke="currentColor" stroke-width="2.5"/><line x1="18" y1="20" x2="32" y2="20" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  "Kate Middleton": `<svg viewBox="0 0 50 50"><path d="M25 6 L27 13 L22 13 Z M19 13 L31 13 L33 20 L17 20 Z M14 20 L36 20 L38 26 L12 26 Z M10 26 L40 26 L40 30 L10 30 Z"/></svg>`,
+  "Rosa Parks": `<svg viewBox="0 0 50 50"><rect x="6" y="18" width="38" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><rect x="12" y="10" width="8" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="34" cy="22" r="3"/><line x1="34" y1="25" x2="34" y2="36" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  // INFJ
+  "Martin Luther King Jr.": `<svg viewBox="0 0 50 50"><path d="M25 6 C20 6 16 10 16 15 C16 20 20 24 25 24 C30 24 34 20 34 15 C34 10 30 6 25 6Z" fill="none" stroke="currentColor" stroke-width="3"/><path d="M10 44 C10 34 18 30 25 30 C32 30 40 34 40 44" fill="none" stroke="currentColor" stroke-width="3"/></svg>`,
+  "Nelson Mandela": `<svg viewBox="0 0 50 50"><path d="M15 30 C15 20 20 12 25 10 C30 12 35 20 35 30 M10 30 C10 38 16 44 25 44 C34 44 40 38 40 30" fill="none" stroke="currentColor" stroke-width="3"/><line x1="15" y1="30" x2="35" y2="30" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  "Mahatma Gandhi": `<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="18" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="25" cy="25" r="4"/><line x1="25" y1="7" x2="25" y2="15" stroke="currentColor" stroke-width="2"/><line x1="25" y1="35" x2="25" y2="43" stroke="currentColor" stroke-width="2"/><line x1="7" y1="25" x2="15" y2="25" stroke="currentColor" stroke-width="2"/><line x1="35" y1="25" x2="43" y2="25" stroke="currentColor" stroke-width="2"/></svg>`,
+  // INTJ
+  "Nikola Tesla": `<svg viewBox="0 0 50 50"><rect x="22" y="30" width="6" height="14"/><rect x="16" y="36" width="18" height="4"/><path d="M25 8 L25 20 M20 12 L25 8 L30 12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M18 20 L15 26 L22 24 L19 30 L26 27" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  "Elon Musk": `<svg viewBox="0 0 50 50"><path d="M25 42 L25 20 M20 20 L25 8 L30 20 Z M18 24 L25 20 L32 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="25" cy="22" rx="8" ry="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  "Isaac Newton": `<svg viewBox="0 0 50 50"><circle cx="25" cy="34" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M20 10 C18 8 14 10 15 14 C16 18 20 18 22 16 C24 14 23 10 20 10Z M20 16 L25 34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  // ISTP
+  "Clint Eastwood": `<svg viewBox="0 0 50 50"><path d="M8 30 C8 30 14 18 25 18 C36 18 42 30 42 30 C42 30 36 42 25 42 C14 42 8 30 8 30Z" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="25" cy="30" r="6" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="25" cy="30" r="2"/></svg>`,
+  "Bruce Lee": `<svg viewBox="0 0 50 50"><line x1="10" y1="40" x2="40" y2="10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M10 40 L18 32 M22 28 L30 20 M34 16 L40 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="25" cy="25" r="4"/></svg>`,
+  "Amelia Earhart": `<svg viewBox="0 0 50 50"><path d="M5 28 L20 22 L25 14 L30 22 L45 28 L30 26 L28 38 L25 36 L22 38 L20 26 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>`,
+  // ISFP
+  "Michael Jackson": `<svg viewBox="0 0 50 50"><path d="M25 8 C18 8 12 14 12 22 C12 34 25 44 25 44 C25 44 38 34 38 22 C38 14 32 8 25 8Z" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="20" cy="20" r="2.5"/><circle cx="30" cy="20" r="2.5"/><path d="M19 28 C20 32 30 32 31 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Frida Kahlo": `<svg viewBox="0 0 50 50"><circle cx="25" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M15 18 C12 16 12 20 15 18 M35 18 C38 16 38 20 35 18" stroke="currentColor" stroke-width="2"/><path d="M15 28 C15 38 35 38 35 28" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M10 40 L40 40" stroke="currentColor" stroke-width="2"/></svg>`,
+  "Audrey Hepburn": `<svg viewBox="0 0 50 50"><ellipse cx="25" cy="16" rx="14" ry="8" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M11 16 L8 32 M39 16 L42 32 M8 32 L42 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="25" cy="38" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  // INFP
+  "J.R.R. Tolkien": `<svg viewBox="0 0 50 50"><rect x="10" y="12" width="30" height="30" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M16 20 C16 14 22 10 25 14 C28 10 34 14 34 20 C34 26 25 34 25 34 C25 34 16 26 16 20Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  "Vincent van Gogh": `<svg viewBox="0 0 50 50"><circle cx="25" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M17 20 C14 10 10 8 8 10 M33 20 C36 10 40 8 42 10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 32 C14 28 20 26 25 28 C30 26 36 28 40 32" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  "William Shakespeare": `<svg viewBox="0 0 50 50"><path d="M15 42 L20 10 L25 30 L30 10 L35 42" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="17" y1="28" x2="33" y2="28" stroke="currentColor" stroke-width="2"/></svg>`,
+  // INTP
+  "Albert Einstein": `<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="10" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="25" cy="25" r="3"/><ellipse cx="25" cy="25" rx="18" ry="7" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="25" cy="25" rx="18" ry="7" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(60 25 25)"/><ellipse cx="25" cy="25" rx="18" ry="7" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(120 25 25)"/></svg>`,
+  "Charles Darwin": `<svg viewBox="0 0 50 50"><path d="M10 38 C10 38 12 28 18 24 C14 20 12 14 16 10 C20 6 26 8 28 14 C34 12 40 16 40 22 C40 30 34 34 28 34 C22 34 18 30 18 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  "Bill Gates": `<svg viewBox="0 0 50 50"><rect x="8" y="8" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="26" y="8" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="8" y="26" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="26" y="26" width="16" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  // ESTP
+  "Ernest Hemingway": `<svg viewBox="0 0 50 50"><rect x="8" y="14" width="34" height="26" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="18" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="22" x2="42" y2="22" stroke="currentColor" stroke-width="2"/><line x1="14" y1="28" x2="36" y2="28" stroke="currentColor" stroke-width="2"/><line x1="14" y1="33" x2="30" y2="33" stroke="currentColor" stroke-width="2"/></svg>`,
+  "Theodore Roosevelt": `<svg viewBox="0 0 50 50"><path d="M25 6 L30 18 L44 18 L33 26 L37 40 L25 32 L13 40 L17 26 L6 18 L20 18 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>`,
+  "Madonna": `<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="16" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="9" y1="25" x2="41" y2="25" stroke="currentColor" stroke-width="2"/><path d="M13 14 C18 20 32 20 37 14 M13 36 C18 30 32 30 37 36" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  // ESFP
+  "Marilyn Monroe": `<svg viewBox="0 0 50 50"><circle cx="25" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M15 26 C10 30 8 38 10 44 L40 44 C42 38 40 30 35 26" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M19 28 C20 32 30 32 31 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Elvis Presley": `<svg viewBox="0 0 50 50"><path d="M15 44 L15 20 M35 44 L35 20 M15 20 C15 20 12 10 25 8 C38 10 35 20 35 20 M22 20 L22 32 M28 20 L28 32 M15 32 L35 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  "Jamie Oliver": `<svg viewBox="0 0 50 50"><path d="M20 8 C20 8 14 10 13 18 C12 26 18 30 25 30 C32 30 38 26 37 18 C36 10 30 8 30 8" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="10" y="30" width="30" height="6" rx="3" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="14" y="36" width="22" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  // ENFP
+  "Robin Williams": `<svg viewBox="0 0 50 50"><path d="M25 12 C18 12 12 18 12 25 C12 32 18 38 25 38 C32 38 38 32 38 25 C38 18 32 12 25 12Z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18 22 C18 20 20 18 22 20 C24 22 22 26 25 26 C28 26 26 22 28 20 C30 18 32 20 32 22" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 30 C20 34 30 34 32 30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Ellen DeGeneres": `<svg viewBox="0 0 50 50"><path d="M8 28 C8 16 16 8 25 8 C34 8 42 16 42 28 M8 28 C8 36 16 44 25 44 M42 28 C42 36 34 44 25 44 M25 44 L25 36 M18 36 L32 36" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  "Walt Disney": `<svg viewBox="0 0 50 50"><path d="M25 8 C20 8 10 14 10 26 C10 36 16 44 25 44 C34 44 40 36 40 26 C40 14 30 8 25 8Z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18 20 C18 16 22 14 25 16 C28 14 32 16 32 20 C32 26 25 32 25 32 C25 32 18 26 18 20Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  // ENTP
+  "Mark Twain": `<svg viewBox="0 0 50 50"><rect x="10" y="12" width="30" height="28" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="16" y1="20" x2="34" y2="20" stroke="currentColor" stroke-width="2"/><line x1="16" y1="26" x2="34" y2="26" stroke="currentColor" stroke-width="2"/><line x1="16" y1="32" x2="26" y2="32" stroke="currentColor" stroke-width="2"/><path d="M30 6 L30 14 M26 8 L30 6 L34 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Leonardo da Vinci": `<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="16" fill="none" stroke="currentColor" stroke-width="2"/><line x1="25" y1="9" x2="25" y2="41" stroke="currentColor" stroke-width="1.5"/><line x1="9" y1="25" x2="41" y2="25" stroke="currentColor" stroke-width="1.5"/><line x1="14" y1="14" x2="36" y2="36" stroke="currentColor" stroke-width="1.5"/><line x1="36" y1="14" x2="14" y2="36" stroke="currentColor" stroke-width="1.5"/><circle cx="25" cy="25" r="5" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  "Thomas Edison": `<svg viewBox="0 0 50 50"><path d="M19 34 C14 30 12 22 15 16 C18 10 24 8 30 10 C36 12 39 18 38 24 C37 30 32 34 28 34 L28 40 L22 40 L22 34 Z" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="22" y1="40" x2="28" y2="40" stroke="currentColor" stroke-width="3"/><line x1="22" y1="43" x2="28" y2="43" stroke="currentColor" stroke-width="3"/></svg>`,
+  // ESTJ
+  "Judge Judy": `<svg viewBox="0 0 50 50"><path d="M12 36 L20 16 L28 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="36" y1="12" x2="36" y2="38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="38" x2="44" y2="38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`,
+  "Henry Ford": `<svg viewBox="0 0 50 50"><rect x="8" y="22" width="34" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="16" cy="38" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="34" cy="38" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M8 26 L16 18 L34 18 L42 26" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  "Sonia Sotomayor": `<svg viewBox="0 0 50 50"><path d="M14 28 L25 8 L36 28 M10 28 L40 28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="25" y1="28" x2="25" y2="42" stroke="currentColor" stroke-width="2.5"/><line x1="16" y1="42" x2="34" y2="42" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  // ESFJ
+  "Taylor Swift": `<svg viewBox="0 0 50 50"><path d="M25 40 C25 40 8 30 8 18 C8 12 13 8 19 10 C22 11 24 14 25 16 C26 14 28 11 31 10 C37 8 42 12 42 18 C42 30 25 40 25 40Z" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  "Jennifer Garner": `<svg viewBox="0 0 50 50"><circle cx="25" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M14 44 C14 36 18 32 25 32 C32 32 36 36 36 44" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M20 16 C20 14 22 12 25 12 C28 12 30 14 30 16" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  "Bill Clinton": `<svg viewBox="0 0 50 50"><path d="M14 40 L14 22 L25 10 L36 22 L36 40 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><rect x="20" y="30" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="40" x2="42" y2="40" stroke="currentColor" stroke-width="2.5"/></svg>`,
+  // ENFJ
+  "Oprah Winfrey": `<svg viewBox="0 0 50 50"><circle cx="25" cy="16" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M15 44 L15 30 C15 26 19 24 25 24 C31 24 35 26 35 30 L35 44" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="20" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="2"/></svg>`,
+  "Barack Obama": `<svg viewBox="0 0 50 50"><rect x="10" y="28" width="30" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18 28 L18 20 C18 14 32 14 32 20 L32 28" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="25" cy="36" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  // ENTJ
+  "Steve Jobs": `<svg viewBox="0 0 50 50"><path d="M32 6 C28 4 22 6 20 10 C18 14 20 20 24 22 C20 24 16 28 16 34 C16 40 20 46 26 46 C30 46 32 44 34 44 C36 44 38 46 40 44 C44 40 44 34 40 30 C38 28 34 28 32 26 C36 24 38 18 36 14 C35 10 34 7 32 6Z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M32 6 C34 4 38 6 38 10" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  "Margaret Thatcher": `<svg viewBox="0 0 50 50"><path d="M25 6 L28 16 L38 16 L30 22 L33 32 L25 26 L17 32 L20 22 L12 16 L22 16 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 38 C14 38 18 34 25 34 C32 34 36 38 36 38" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  "Julius Caesar": `<svg viewBox="0 0 50 50"><path d="M10 36 C10 36 14 24 20 20 C16 16 16 10 20 8 C26 6 30 10 28 16 C34 14 40 18 40 24 C40 32 34 38 25 38 C20 38 14 36 10 36Z" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>`
+};
+
+const personPortraits = {
+  'Queen Elizabeth II': 'icons/people/queen-elizabeth-ii.png',
+  'Warren Buffett': 'icons/people/warren-buffett.png',
+  'George Washington': 'icons/people/george-washington.png',
+  'Mother Teresa': 'icons/people/mother-teresa.png',
+  'Kate Middleton': 'icons/people/kate-middleton.png',
+  'Rosa Parks': 'icons/people/rosa-parks.png',
+  'Martin Luther King Jr.': 'icons/people/martin-luther-king-jr.png',
+  'Nelson Mandela': 'icons/people/nelson-mandela.png',
+  'Mahatma Gandhi': 'icons/people/mahatma-gandhi.png',
+  'Nikola Tesla': 'icons/people/nikola-tesla.png',
+  'Elon Musk': 'icons/people/elon-musk.png',
+  'Isaac Newton': 'icons/people/isaac-newton.png',
+  'Clint Eastwood': 'icons/people/clint-eastwood.png',
+  'Bruce Lee': 'icons/people/bruce-lee.png',
+  'Amelia Earhart': 'icons/people/amelia-earhart.png',
+  'Michael Jackson': 'icons/people/michael-jackson.png',
+  'Frida Kahlo': 'icons/people/frida-kahlo.png',
+  'Audrey Hepburn': 'icons/people/audrey-hepburn.png',
+  'J.R.R. Tolkien': 'icons/people/jrr-tolkien.png',
+  'Vincent van Gogh': 'icons/people/vincent-van-gogh.png',
+  'William Shakespeare': 'icons/people/william-shakespeare.png',
+  'Albert Einstein': 'icons/people/albert-einstein.png',
+  'Charles Darwin': 'icons/people/charles-darwin.png',
+  'Bill Gates': 'icons/people/bill-gates.png',
+  'Ernest Hemingway': 'icons/people/ernest-hemingway.png',
+  'Theodore Roosevelt': 'icons/people/theodore-roosevelt.png',
+  'Madonna': 'icons/people/madonna.png',
+  'Marilyn Monroe': 'icons/people/marilyn-monroe.png',
+  'Elvis Presley': 'icons/people/elvis-presley.png',
+  'Jamie Oliver': 'icons/people/jamie-oliver.png',
+  'Robin Williams': 'icons/people/robin-williams.png',
+  'Ellen DeGeneres': 'icons/people/ellen-degeneres.png',
+  'Walt Disney': 'icons/people/walt-disney.png',
+  'Mark Twain': 'icons/people/mark-twain.png',
+  'Leonardo da Vinci': 'icons/people/leonardo-da-vinci.png',
+  'Thomas Edison': 'icons/people/thomas-edison.png',
+  'Judge Judy': 'icons/people/judge-judy.png',
+  'Henry Ford': 'icons/people/henry-ford.png',
+  'Sonia Sotomayor': 'icons/people/sonia-sotomayor.png',
+  'Taylor Swift': 'icons/people/taylor-swift.png',
+  'Jennifer Garner': 'icons/people/jennifer-garner.png',
+  'Bill Clinton': 'icons/people/bill-clinton.png',
+  'Oprah Winfrey': 'icons/people/oprah-winfrey.png',
+  'Barack Obama': 'icons/people/barack-obama.png',
+  'Steve Jobs': 'icons/people/steve-jobs.png',
+  'Margaret Thatcher': 'icons/people/margaret-thatcher.png',
+  'Julius Caesar': 'icons/people/julius-caesar.png'
+};
+
+const personTitles = {
+  "Queen Elizabeth II": "Queen of the United Kingdom",
+  "Warren Buffett": "Investor & Berkshire Hathaway CEO",
+  "George Washington": "1st U.S. President",
+  "Mother Teresa": "Humanitarian & Saint",
+  "Kate Middleton": "Princess of Wales",
+  "Rosa Parks": "Civil Rights Activist",
+  "Martin Luther King Jr.": "Civil Rights Leader",
+  "Nelson Mandela": "Former President of South Africa",
+  "Mahatma Gandhi": "Indian Independence Leader",
+  "Nikola Tesla": "Inventor & Electrical Engineer",
+  "Elon Musk": "Entrepreneur & CEO",
+  "Isaac Newton": "Physicist & Mathematician",
+  "Clint Eastwood": "Actor & Film Director",
+  "Bruce Lee": "Martial Artist & Actor",
+  "Amelia Earhart": "Aviation Pioneer",
+  "Michael Jackson": "Singer & Performer",
+  "Frida Kahlo": "Painter",
+  "Audrey Hepburn": "Actress & Humanitarian",
+  "J.R.R. Tolkien": "Author of The Lord of the Rings",
+  "Vincent van Gogh": "Post-Impressionist Painter",
+  "William Shakespeare": "Playwright & Poet",
+  "Albert Einstein": "Theoretical Physicist",
+  "Charles Darwin": "Naturalist & Evolution Theorist",
+  "Bill Gates": "Microsoft Co-founder",
+  "Ernest Hemingway": "Novelist & Journalist",
+  "Theodore Roosevelt": "26th U.S. President",
+  "Madonna": "Singer & Performer",
+  "Marilyn Monroe": "Actress & Model",
+  "Elvis Presley": "Singer & Actor",
+  "Jamie Oliver": "Chef & TV Presenter",
+  "Robin Williams": "Actor & Comedian",
+  "Ellen DeGeneres": "Comedian & TV Host",
+  "Walt Disney": "Disney Co-founder",
+  "Mark Twain": "Author & Humorist",
+  "Leonardo da Vinci": "Artist & Inventor",
+  "Thomas Edison": "Inventor",
+  "Judge Judy": "TV Judge",
+  "Henry Ford": "Ford Motor Company Founder",
+  "Sonia Sotomayor": "U.S. Supreme Court Justice",
+  "Taylor Swift": "Singer-Songwriter",
+  "Jennifer Garner": "Actress",
+  "Bill Clinton": "42nd U.S. President",
+  "Oprah Winfrey": "Media Executive & Host",
+  "Barack Obama": "44th U.S. President",
+  "Steve Jobs": "CEO of Apple",
+  "Margaret Thatcher": "Former UK Prime Minister",
+  "Julius Caesar": "Roman Statesman & General"
+};
+
+const descriptions = {
+  "ISTJ": {
+    "name": "The Logistician",
+    "desc": "Steady, practical, and responsible. You trust what is proven, clear, and realistic and others rely on you because you take commitments seriously. Care shows through consistency, not performance.",
+    "hidden": "You may notice inconsistencies, risks, and unfinished details earlier than others. This can make you steady under pressure, though you might carry private worry when things feel disorganized or unreliable.",
+    "strengths": [
+      "Reliable and dependable",
+      "Highly disciplined",
+      "Careful with details",
+      "Deeply loyal",
+      "Organized and methodical"
+    ],
+    "weaknesses": [
+      "Can be rigid and inflexible",
+      "Overly serious at times",
+      "Resistant to change",
+      "Struggles with emotional expression",
+      "May miss the bigger picture"
+    ],
+    "careers": [
+      "Accountant",
+      "Data Analyst",
+      "Operations Manager",
+      "Auditor",
+      "Administrator"
+    ],
+    "love": "Loyal, steady, serious, protective, shows love through actions.",
+    "friendship": "Reliable friend, keeps promises, prefers a small trusted circle.",
+    "growth": "Be open to change. Say what you feel, not only what you do. Try not to judge yourself too harshly when things are not perfect.",
+    "people": [
+      "Queen Elizabeth II",
+      "Warren Buffett",
+      "George Washington"
+    ]
+  },
+  "ISFJ": {
+    "name": "The Defender",
+    "desc": "Gentle, loyal, and protective. You notice small details about people and remember what matters to them. You may not seek attention, but you often become the emotional foundation of your relationships.",
+    "hidden": "You may pick up small changes in tone, routine, and mood before anyone says something is wrong. Because you remember emotional details well, you often support people quietly, but your own needs can get pushed too far back.",
+    "strengths": [
+      "Deeply caring and empathetic",
+      "Loyal and committed",
+      "Patient and steady",
+      "Highly observant of others",
+      "Practical and dependable"
+    ],
+    "weaknesses": [
+      "Prone to people-pleasing",
+      "Avoids conflict too often",
+      "Carries too much alone",
+      "Struggles to say no",
+      "Takes criticism personally"
+    ],
+    "careers": [
+      "Nurse",
+      "Teacher",
+      "Social Worker",
+      "Human Resources Assistant",
+      "Care Coordinator"
+    ],
+    "love": "Gentle, loyal, thoughtful, remembers small details.",
+    "friendship": "Supportive friend, checks on people, gives quiet care.",
+    "growth": "Do not forget your own needs. Learn to say no. Speak up before resentment builds inside you.",
+    "people": [
+      "Mother Teresa",
+      "Kate Middleton",
+      "Rosa Parks"
+    ]
+  },
+  "INFJ": {
+    "name": "The Advocate",
+    "desc": "Deep, idealistic, and insight-driven. You want to understand people beneath the surface and feel drawn to healing or guiding in some meaningful way. Warm and compassionate, yet deeply private.",
+    "hidden": "You may connect patterns in people, timing, and atmosphere very quickly, which helps you read the room before things are explained. Because you search for deeper meaning, you may need quiet time to separate your own feelings from everyone else’s.",
+    "strengths": [
+      "Deeply insightful about people",
+      "Empathetic and compassionate",
+      "Principled and visionary",
+      "Creative and imaginative",
+      "Inspiring to others"
+    ],
+    "weaknesses": [
+      "Prone to overthinking",
+      "Burns out easily",
+      "Expects too much of self",
+      "Can become too secretive",
+      "Struggles with criticism"
+    ],
+    "careers": [
+      "Counselor",
+      "Writer",
+      "Psychologist",
+      "Nonprofit Worker",
+      "Life Coach"
+    ],
+    "love": "Deep, loyal, emotionally intense, wants a meaningful bond.",
+    "friendship": "Chooses few close friends, listens deeply, gives thoughtful advice.",
+    "growth": "Do not carry everyone’s pain. Rest before you burn out. Accept that not everyone will understand your depth.",
+    "people": [
+      "Martin Luther King Jr.",
+      "Nelson Mandela",
+      "Mahatma Gandhi"
+    ]
+  },
+  "INTJ": {
+    "name": "The Architect",
+    "desc": "Strategic, independent, and future-focused. You see patterns and long-term possibilities before others notice them. Reserved or intense by nature, you prefer meaningful depth over surface interaction.",
+    "hidden": "You may mentally simulate future outcomes and notice which choices are likely to fail before others see the pattern. Your calm exterior can hide strong feelings, especially when you care deeply but do not yet trust the situation.",
+    "strengths": [
+      "Strategic and forward-thinking",
+      "Highly analytical",
+      "Independent and self-driven",
+      "Focused and goal-oriented",
+      "Deeply knowledgeable"
+    ],
+    "weaknesses": [
+      "Can appear cold or distant",
+      "Perfectionistic to a fault",
+      "Impatient with others",
+      "Overly self-critical",
+      "Struggles with emotions"
+    ],
+    "careers": [
+      "Systems Architect",
+      "Software Developer",
+      "Researcher",
+      "Engineer",
+      "Strategic Planner"
+    ],
+    "love": "Loyal but private, shows love through plans, solutions, and commitment.",
+    "friendship": "Selective, honest, values smart and meaningful conversations.",
+    "growth": "Let people see your softer side. Do not expect everyone to think like you. Practice patience with emotions, including your own.",
+    "people": [
+      "Nikola Tesla",
+      "Elon Musk",
+      "Isaac Newton"
+    ]
+  },
+  "ISTP": {
+    "name": "The Virtuoso",
+    "desc": "Calm, observant, and practical. You understand life through direct experience and hands-on problem-solving. You value freedom, skill, and figuring out how things work, often surprising others with quiet capability.",
+    "hidden": "You may stay calm because you are quietly observing how the situation works in real time. You often notice practical details others miss, then solve problems through action before you explain what you are thinking.",
+    "strengths": [
+      "Calm under pressure",
+      "Highly practical and skilled",
+      "Adaptable and resourceful",
+      "Observant and perceptive",
+      "Independent thinker"
+    ],
+    "weaknesses": [
+      "Emotionally guarded",
+      "Gets restless easily",
+      "Takes unnecessary risks",
+      "Commits with difficulty",
+      "Can seem indifferent"
+    ],
+    "careers": [
+      "Engineer",
+      "Mechanic",
+      "Technician",
+      "Emergency Responder",
+      "Pilot"
+    ],
+    "love": "Calm, loyal, practical, gives space, shows love by helping.",
+    "friendship": "Easygoing friend, enjoys shared activities more than long emotional talks.",
+    "growth": "Do not avoid important emotional talks. Let people know when you care. Think before taking risks.",
+    "people": [
+      "Clint Eastwood",
+      "Bruce Lee",
+      "Amelia Earhart"
+    ]
+  },
+  "ISFP": {
+    "name": "The Adventurer",
+    "desc": "Sensitive, artistic, and quietly passionate. You care about authenticity, beauty, and living in a way that feels true to your values. Soft on the outside and deeply loyal to what matters on the inside.",
+    "hidden": "You may sense quickly when something feels forced, fake, or no longer true to your values. Even when you seem quiet or easygoing, your reactions can be deep, precise, and strongly guided by personal authenticity.",
+    "strengths": [
+      "Creatively expressive",
+      "Gentle and kind-hearted",
+      "Flexible and open-minded",
+      "Value-driven and sincere",
+      "Warm and caring"
+    ],
+    "weaknesses": [
+      "Avoids conflict",
+      "Struggles with long-term planning",
+      "Feels easily restricted",
+      "Can be overly self-critical",
+      "Difficulty with assertiveness"
+    ],
+    "careers": [
+      "Graphic Designer",
+      "Photographer",
+      "Artist",
+      "Fashion Designer",
+      "Occupational Therapist"
+    ],
+    "love": "Soft, sincere, romantic, shows love through presence and small actions.",
+    "friendship": "Accepting friend, easy to be around, respects individuality.",
+    "growth": "Do not disappear when hurt. Learn to explain your needs. Build simple plans so your dreams can become real.",
+    "people": [
+      "Michael Jackson",
+      "Frida Kahlo",
+      "Audrey Hepburn"
+    ]
+  },
+  "INFP": {
+    "name": "The Mediator",
+    "desc": "Imaginative, idealistic, and emotionally deep. You search for meaning, truth, and a life that matches your inner values. Your inner world is rich and personal and your feelings and beliefs run stronger than they appear.",
+    "hidden": "You may notice when someone’s words and actions do not match their deeper values or emotions. Your imagination gives you strong insight, but it can also make disappointment feel intense when reality does not match what you hoped for.",
+    "strengths": [
+      "Deeply empathetic",
+      "Highly creative and imaginative",
+      "Sincere and authentic",
+      "Idealistic and passionate",
+      "Open-minded and curious"
+    ],
+    "weaknesses": [
+      "Can be overly idealistic",
+      "Easily discouraged",
+      "Avoids practical detail",
+      "Takes things too personally",
+      "Difficulty with deadlines"
+    ],
+    "careers": [
+      "Writer",
+      "Counselor",
+      "Social Worker",
+      "Artist",
+      "Editor"
+    ],
+    "love": "Deep, romantic, loyal, wants emotional honesty.",
+    "friendship": "Gentle friend, values real conversations, accepts people deeply.",
+    "growth": "Do not wait for life to feel perfect before acting. Be careful not to idealize people too much. Turn your feelings into action.",
+    "people": [
+      "J.R.R. Tolkien",
+      "Vincent van Gogh",
+      "William Shakespeare"
+    ]
+  },
+  "INTP": {
+    "name": "The Logician",
+    "desc": "Curious, analytical, and an independent thinker. You enjoy understanding ideas deeply and questioning assumptions others accept too quickly. Your mind is most alive when exploring complex territory without shallow rules.",
+    "hidden": "You may spot hidden assumptions, contradictions, and weak logic long before you say anything out loud. Your mind often needs space to test ideas from many angles, which can make you seem distant when you are actually processing deeply.",
+    "strengths": [
+      "Highly logical and analytical",
+      "Deeply curious",
+      "Original thinker",
+      "Objective and precise",
+      "Open to new ideas"
+    ],
+    "weaknesses": [
+      "Prone to overthinking",
+      "Can seem emotionally detached",
+      "Struggles with follow-through",
+      "Avoids social situations",
+      "Overly critical of others"
+    ],
+    "careers": [
+      "Software Developer",
+      "Data Scientist",
+      "Researcher",
+      "Engineer",
+      "Professor"
+    ],
+    "love": "Private, thoughtful, honest, shows love through understanding and loyalty.",
+    "friendship": "Enjoys smart conversations, memes, theories, and shared interests.",
+    "growth": "Do not live only in your head. Finish what you start. Practice showing care in ways people can feel.",
+    "people": [
+      "Albert Einstein",
+      "Charles Darwin",
+      "Bill Gates"
+    ]
+  },
+  "ESTP": {
+    "name": "The Entrepreneur",
+    "desc": "Bold, energetic, and action-oriented. You learn best through direct experience and respond quickly to what is happening around you. You prefer doing over overthinking, brave, persuasive, and fast-moving.",
+    "hidden": "You may read body language, timing, and social momentum very quickly. This helps you adapt in the moment, shift the energy of a room, and act confidently when others are still trying to understand what changed.",
+    "strengths": [
+      "Confident and decisive",
+      "Highly adaptable",
+      "Persuasive and energetic",
+      "Quick-thinking under pressure",
+      "Observant and perceptive"
+    ],
+    "weaknesses": [
+      "Can be impulsive",
+      "Gets bored easily",
+      "May overlook details",
+      "Risk-taking to a fault",
+      "Struggles with long-term focus"
+    ],
+    "careers": [
+      "Entrepreneur",
+      "Sales Representative",
+      "Paramedic",
+      "Police Officer",
+      "Event Host"
+    ],
+    "love": "Fun, direct, exciting, shows love through action and shared experiences.",
+    "friendship": "Energetic friend, likes adventure, jokes, and spontaneous plans.",
+    "growth": "Slow down before acting. Think about long-term effects. Listen when people need emotional support, not only solutions.",
+    "people": [
+      "Ernest Hemingway",
+      "Theodore Roosevelt",
+      "Madonna"
+    ]
+  },
+  "ESFP": {
+    "name": "The Entertainer",
+    "desc": "Expressive, warm, and full of life. You bring energy into the present moment and know how to make others feel included. Emotionally responsive and socially aware, you want life to feel alive, open, and real.",
+    "hidden": "You may notice atmosphere, facial expressions, and emotional distance faster than people expect. Behind your playful energy, you often sense who feels left out and try to make the moment feel warmer or more alive.",
+    "strengths": [
+      "Warm and enthusiastic",
+      "Naturally charming",
+      "Lives fully in the present",
+      "Emotionally perceptive",
+      "Brings joy to others"
+    ],
+    "weaknesses": [
+      "Avoids long-term planning",
+      "Seeks constant stimulation",
+      "Struggles with discipline",
+      "Can be overly dramatic",
+      "Sensitive to criticism"
+    ],
+    "careers": [
+      "Performer",
+      "Event Planner",
+      "Hospitality Manager",
+      "Influencer",
+      "Customer Relations Specialist"
+    ],
+    "love": "Affectionate, playful, expressive, loves shared moments.",
+    "friendship": "Fun friend, brings people together, makes life feel lighter.",
+    "growth": "Think about the future, not only the moment. Do not avoid serious problems. Build habits that protect your peace.",
+    "people": [
+      "Marilyn Monroe",
+      "Elvis Presley",
+      "Jamie Oliver"
+    ]
+  },
+  "ENFP": {
+    "name": "The Campaigner",
+    "desc": "Imaginative, enthusiastic, and emotionally expressive. You see potential in people, ideas, and future possibilities, energized by meaning, connection, and personal growth. Inspiring to those who need someone to believe in them.",
+    "hidden": "You may connect emotions, ideas, and possibilities at high speed, often sensing potential before it becomes obvious. This gives you inspiring energy, but it can also make you restless when life feels too narrow or repetitive.",
+    "strengths": [
+      "Deeply creative and imaginative",
+      "Enthusiastic and energetic",
+      "Highly empathetic",
+      "Inspiring and motivating",
+      "Open-minded and curious"
+    ],
+    "weaknesses": [
+      "Can be scattered or unfocused",
+      "Easily emotionally overwhelmed",
+      "Inconsistent follow-through",
+      "Overthinks decisions",
+      "Struggles with routine"
+    ],
+    "careers": [
+      "Creative Director",
+      "Marketing Strategist",
+      "Counselor",
+      "Content Creator",
+      "Life Coach"
+    ],
+    "love": "Excited, expressive, emotionally open, wants growth and connection.",
+    "friendship": "Encouraging friend, brings ideas, deep talks, and fun energy.",
+    "growth": "Choose what matters most and stay with it. Do not run from boredom too quickly. Protect your energy from emotional overload.",
+    "people": [
+      "Robin Williams",
+      "Ellen DeGeneres",
+      "Walt Disney"
+    ]
+  },
+  "ENTP": {
+    "name": "The Debater",
+    "desc": "Curious, inventive, and mentally quick. You enjoy exploring ideas, challenging assumptions, and finding new ways to see a problem. Energetic and restless, you dislike feeling boxed in and thrive on intellectual friction.",
+    "hidden": "You may test ideas because you are trying to understand how people, systems, and arguments really work. You often detect weak reasoning or hidden motives quickly, but your curiosity can feel intense to people who want emotional reassurance first.",
+    "strengths": [
+      "Inventive and original",
+      "Witty and quick-minded",
+      "Highly adaptable",
+      "Sees multiple perspectives",
+      "Energetic and confident"
+    ],
+    "weaknesses": [
+      "Argues for the sake of it",
+      "Becomes restless easily",
+      "Leaves things unfinished",
+      "Can be insensitive",
+      "Struggles with authority"
+    ],
+    "careers": [
+      "Entrepreneur",
+      "Product Manager",
+      "Innovation Consultant",
+      "Lawyer",
+      "Marketing Strategist"
+    ],
+    "love": "Playful, mentally exciting, honest, likes growth and challenge.",
+    "friendship": "Fun and witty friend, enjoys debates, ideas, and unexpected plans.",
+    "growth": "Finish what you start. Be careful not to turn every talk into a debate. Listen to feelings, not just ideas.",
+    "people": [
+      "Mark Twain",
+      "Leonardo da Vinci",
+      "Thomas Edison"
+    ]
+  },
+  "ESTJ": {
+    "name": "The Executive",
+    "desc": "Direct, organized, and practical. You like clear standards, structure, and efficient action. When something needs leadership or order, you step forward naturally. You want things to work and people to take their duties seriously.",
+    "hidden": "You may notice inefficiency, risk, and unclear responsibility almost immediately. This can make you a strong organizer, though you may quietly feel burdened when everyone expects you to be the one who fixes the mess.",
+    "strengths": [
+      "Highly organized",
+      "Decisive and confident",
+      "Responsible and reliable",
+      "Strong natural leader",
+      "Excellent at execution"
+    ],
+    "weaknesses": [
+      "Can be controlling",
+      "Impatient with others",
+      "Inflexible under pressure",
+      "Struggles with emotions",
+      "May seem harsh or blunt"
+    ],
+    "careers": [
+      "Project Manager",
+      "Operations Director",
+      "Business Administrator",
+      "Military Officer",
+      "School Principal"
+    ],
+    "love": "Loyal, protective, dependable, shows love by providing and organizing.",
+    "friendship": "Honest friend, gives practical help, keeps people accountable.",
+    "growth": "Be softer when people are emotional. Not everything needs to be controlled. Make space for different ways of doing things.",
+    "people": [
+      "Judge Judy",
+      "Henry Ford",
+      "Sonia Sotomayor"
+    ]
+  },
+  "ESFJ": {
+    "name": "The Consul",
+    "desc": "Warm, responsible, and socially aware. You care deeply about harmony, belonging, and making sure people feel supported, noticing emotional needs quickly and becoming the natural organizer in your communities.",
+    "hidden": "You may track social cues, expectations, and group comfort with unusual care. This helps you keep people connected, but it can also make tension feel personal even when the conflict is not yours to solve.",
+    "strengths": [
+      "Warm and supportive",
+      "Reliable and responsible",
+      "Strong social awareness",
+      "Naturally cooperative",
+      "Creates harmony easily"
+    ],
+    "weaknesses": [
+      "Prone to people-pleasing",
+      "Takes criticism personally",
+      "Needs external approval",
+      "Avoids difficult truths",
+      "Can be overly traditional"
+    ],
+    "careers": [
+      "Teacher",
+      "Nurse",
+      "Human Resources Specialist",
+      "Community Manager",
+      "Event Coordinator"
+    ],
+    "love": "Warm, loyal, attentive, wants closeness and appreciation.",
+    "friendship": "Thoughtful friend, remembers important dates, checks on people.",
+    "growth": "Do not depend too much on approval. Say what you need directly. Remember that conflict can be healthy when handled with care.",
+    "people": [
+      "Taylor Swift",
+      "Jennifer Garner",
+      "Bill Clinton"
+    ]
+  },
+  "ENFJ": {
+    "name": "The Protagonist",
+    "desc": "Empathetic, expressive, and purpose-driven. You see potential in others and feel drawn to helping people grow. A natural guide who understands emotions and group energy well, though you may give more than you keep.",
+    "hidden": "You may sense emotional undercurrents and unspoken needs quickly, then instinctively try to guide people toward confidence or clarity. Your warmth is powerful, but you can lose energy when you carry too much of other people’s growth.",
+    "strengths": [
+      "Deeply empathetic",
+      "Naturally inspiring and charismatic",
+      "Excellent communicator",
+      "Supportive and encouraging",
+      "Visionary and purposeful"
+    ],
+    "weaknesses": [
+      "Overextends and burns out",
+      "Becomes too personally involved",
+      "Neglects own needs",
+      "Struggles with criticism",
+      "Can be overly idealistic"
+    ],
+    "careers": [
+      "Counselor",
+      "Teacher",
+      "Team Leader",
+      "Public Speaker",
+      "Nonprofit Director"
+    ],
+    "love": "Devoted, expressive, supportive, wants deep emotional connection.",
+    "friendship": "Encouraging friend, gives advice, helps people believe in themselves.",
+    "growth": "Do not make everyone’s problems your responsibility. Set boundaries. Let people support you too.",
+    "people": [
+      "Oprah Winfrey",
+      "Barack Obama",
+      "Nelson Mandela"
+    ]
+  },
+  "ENTJ": {
+    "name": "The Commander",
+    "desc": "Ambitious, strategic, and decisive. You see goals clearly and know how to organize people, systems, and plans to reach them. Comfortable making decisions and pushing forward, your challenge is balancing achievement with patience.",
+    "hidden": "You may see leverage, bottlenecks, and opportunity faster than others in a changing situation. Your decisive energy can hide how much pressure you feel to stay strong, capable, and ahead of the problem.",
+    "strengths": [
+      "Strategic and visionary",
+      "Highly confident and decisive",
+      "Strong natural leader",
+      "Goal-oriented and driven",
+      "Excellent at organizing people"
+    ],
+    "weaknesses": [
+      "Can be intense or overbearing",
+      "Impatient with others",
+      "Blunt to the point of harshness",
+      "Overly focused on success",
+      "Struggles with vulnerability"
+    ],
+    "careers": [
+      "Entrepreneur",
+      "Executive Manager",
+      "Management Consultant",
+      "Business Strategist",
+      "Lawyer"
+    ],
+    "love": "Loyal, direct, protective, pushes the relationship to grow.",
+    "friendship": "Motivating friend, gives honest advice, values ambition and respect.",
+    "growth": "Be careful with harsh words. Let people move at their own pace. Remember that emotions are not weakness.",
+    "people": [
+      "Steve Jobs",
+      "Margaret Thatcher",
+      "Julius Caesar"
+    ]
+  }
+};
+
+let answers = new Array(20).fill(null);
+let current = 0;
+const sections = ["E vs I","S vs N","T vs F","J vs P"];
+const sectionLabels = ["Energy","Perception","Judgment","Structure"];
+
+
+let appAudioCtx = null;
+let soundUnlocked = false;
+let finishSoundPlayed = false;
+
+function getAudioCtx() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+  if (!appAudioCtx) appAudioCtx = new AudioContextClass();
+  return appAudioCtx;
+}
+
+function unlockSound() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  soundUnlocked = true;
+}
+
+function playTone(freq = 660, duration = 0.08, gainLevel = 0.04, type = 'sine') {
+  const ctx = getAudioCtx();
+  if (!ctx || !soundUnlocked) return;
+
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(freq, ctx.currentTime);
+
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(gainLevel, ctx.currentTime + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
+
+  oscillator.start(ctx.currentTime);
+  oscillator.stop(ctx.currentTime + duration + 0.02);
+}
+
+function playClickTone() {
+  unlockSound();
+  playTone(720, 0.075, 0.035, 'sine');
+  setTimeout(() => playTone(920, 0.06, 0.025, 'sine'), 45);
+}
+
+function playFinishBell() {
+  unlockSound();
+  const ctx = getAudioCtx();
+  if (!ctx || !soundUnlocked) return;
+
+  const notes = [
+    { freq: 659.25, time: 0, gain: 0.035 },
+    { freq: 783.99, time: 0.12, gain: 0.032 },
+    { freq: 987.77, time: 0.25, gain: 0.028 }
+  ];
+
+  notes.forEach(note => {
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(note.freq, ctx.currentTime + note.time);
+
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime + note.time);
+    gain.gain.exponentialRampToValueAtTime(note.gain, ctx.currentTime + note.time + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + note.time + 0.85);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.start(ctx.currentTime + note.time);
+    oscillator.stop(ctx.currentTime + note.time + 0.9);
+  });
+}
+
+function hideLoadingScreen() {
+  const loader = document.getElementById('loading-screen');
+  if (!loader) return;
+  setTimeout(() => loader.classList.add('hide'), 1200);
+  setTimeout(() => loader.remove(), 2100);
+}
+
+window.addEventListener('load', hideLoadingScreen);
+
+document.addEventListener('pointerdown', unlockSound, { once: true });
+document.addEventListener('click', function(e) {
+  if (e.target.closest('button, .premium-btn')) playClickTone();
+}, true);
+
+function getSectionIndex(i) { return Math.floor(i / 5); }
+
+function getType() {
+  let c = {E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  for(let i=0;i<5;i++){
+    if(answers[i]) c[scoring.EI[i][answers[i]]]++;
+    if(answers[i+5]) c[scoring.SN[i][answers[i+5]]]++;
+    if(answers[i+10]) c[scoring.TF[i][answers[i+10]]]++;
+    if(answers[i+15]) c[scoring.JP[i][answers[i+15]]]++;
+  }
+  return (c.E>=c.I?'E':'I')+(c.S>=c.N?'S':'N')+(c.T>=c.F?'T':'F')+(c.J>=c.P?'J':'P');
+}
+
+function getScores() {
+  let s = {E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  for(let i=0;i<5;i++){
+    if(answers[i]) s[scoring.EI[i][answers[i]]]++;
+    if(answers[i+5]) s[scoring.SN[i][answers[i+5]]]++;
+    if(answers[i+10]) s[scoring.TF[i][answers[i+10]]]++;
+    if(answers[i+15]) s[scoring.JP[i][answers[i+15]]]++;
+  }
+  return s;
+}
+
+function initials(name) {
+  return name.split(' ').slice(0,2).map(w=>w[0]).join('');
+}
+
+function renderResult() {
+  const type = getType();
+  const s = getScores();
+  const d = descriptions[type];
+  const svgIcon = typeIcons[type];
+  const area = document.getElementById('quiz-area');
+
+  
+  if (!finishSoundPlayed) {
+    finishSoundPlayed = true;
+    setTimeout(playFinishBell, 260);
+  }
+// dims: left side is the "positive" direction, pct = how much of RIGHT side
+  const dims = [
+    {l:'E',r:'I',ls:s.E,rs:s.I,lLabel:'Extrovert',rLabel:'Introvert'},
+    {l:'S',r:'N',ls:s.S,rs:s.N,lLabel:'Sensing',rLabel:'Intuition'},
+    {l:'T',r:'F',ls:s.T,rs:s.F,lLabel:'Thinking',rLabel:'Feeling'},
+    {l:'J',r:'P',ls:s.J,rs:s.P,lLabel:'Judging',rLabel:'Perceiving'}
+  ];
+
+  area.innerHTML = `
+    <div class="result-screen fade-in">
+      <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#9c9186;margin-bottom:1rem">Your type</div>
+      <div class="type-icon-wrap">${svgIcon}</div>
+      <div class="type-display">
+        <div class="type-letters">${type}</div>
+        <div class="type-name">${d.name}</div>
+      </div>
+
+      <div class="score-bars">
+        ${dims.map(dim=>{
+          const total = dim.ls + dim.rs;
+          // pct represents position: 0% = fully left (E/S/T/J), 100% = fully right (I/N/F/P)
+          const pct = total > 0 ? Math.round((dim.rs / total) * 100) : 50;
+          return `<div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#9c9186;letter-spacing:0.06em;margin-bottom:6px">
+              <span>${dim.lLabel.toUpperCase()} ${dim.l}</span><span>${dim.r} ${dim.rLabel.toUpperCase()}</span>
+            </div>
+            <div class="score-track"><div class="score-marker" style="left:${pct}%"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="result-card">
+        <p>${d.desc}</p>
+        <p class="hidden-insight">${d.hidden}</p>
+        <div class="traits-row">
+          <div class="trait-block">
+            <div class="trait-label">Strengths</div>
+            <div class="trait-list"><ul>${d.strengths.map(item=>`<li>${item}</li>`).join('')}</ul></div>
+          </div>
+          <div class="trait-block">
+            <div class="trait-label">Watch for</div>
+            <div class="trait-list"><ul>${d.weaknesses.map(item=>`<li>${item}</li>`).join('')}</ul></div>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <div class="trait-label" style="margin-bottom:8px">Career paths</div>
+          <div class="careers-row">${d.careers.map(c=>`<span class="career-tag">${c}</span>`).join('')}</div>
+        </div>
+
+        <div class="traits-row result-detail-grid">
+          <div class="trait-block">
+            <div class="trait-label">Love style</div>
+            <p class="section-copy">${d.love}</p>
+          </div>
+          <div class="trait-block">
+            <div class="trait-label">Friendship style</div>
+            <p class="section-copy">${d.friendship}</p>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <div class="trait-label" style="margin-bottom:8px">Personal growth tips</div>
+          <p class="section-copy">${d.growth}</p>
+        </div>
+
+        <div class="people-row">
+          <div class="people-label">Iconic people</div>
+          <div class="people-list">
+            ${d.people.map(p=>`
+              <div class="person-item">
+                <div class="person-dot">
+                  <img src="${personPortraits[p] || ''}" alt="${p}">
+                </div>
+                <div class="person-text">
+                  <div class="person-name">${p}</div>
+                  <div class="person-title">${personTitles[p] || ''}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+
+      <button class="restart-btn" onclick="restart()">Retake the test</button>
+    </div>
+  `;
+}
+
+function renderIntro() {
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = `
+    <div class="intro-screen fade-in">
+      <div class="intro-badge">Personality Test</div>
+      <div class="intro-title">What kind of person<br>are you, really?</div>
+      <div class="intro-sub">This test looks at how you think, feel, and move through the world. Answer honestly. There are no right or wrong answers, only your truth.</div>
+      <div class="intro-stats" style="grid-template-columns:1fr;">
+        <div class="stat-block"><div class="stat-num">20</div><div class="stat-label">Questions</div></div>
+      </div>
+      <div class="intro-note">Choose A or B for each question. Go with your first instinct. Choose the answer that feels most like you, most of the time.</div>
+      <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#b5a898;margin-bottom:1.5rem;">by Yparx1</div>
+      <button class="start-btn" onclick="startQuiz()">Begin the test</button>
+    </div>
+  `;
+}
+
+function startQuiz() { current = 0; renderQuestion(); }
+
+function renderQuestion() {
+  const q = questions[current];
+  const secIdx = getSectionIndex(current);
+  // Progress should reflect the visible question position, not how many answers are filled.
+  // This prevents the last screen from showing values like "16 of 20" when the user is on Q20.
+  const progressNumber = current + 1;
+  const pct = Math.round((progressNumber / questions.length) * 100);
+  const area = document.getElementById('quiz-area');
+
+  const dots = questions.map((_,i)=>{
+    if(answers[i]) return `<div class="dot done"></div>`;
+    if(i===current) return `<div class="dot active"></div>`;
+    return `<div class="dot"></div>`;
+  });
+
+  const pillsHtml = sections.map((s,i)=>{
+    const cls = i < secIdx ? 'done' : i === secIdx ? 'active' : 'todo';
+    return `<span class="sec-pill ${cls}">${sectionLabels[i]}</span>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="fade-in">
+      <div class="section-heads">${pillsHtml}</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>${progressNumber} of ${questions.length}</span><span>${pct}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="question-block">
+        <div style="display:inline-block;font-size:11px;color:#b5a898;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;padding:4px 10px;border:1px solid #cfc2b0;border-radius:999px;background:transparent">Q${current+1}</div>
+        <div class="question-text">${q.q}</div>
+        <div class="options">
+          <button class="option-btn${answers[current]==='A'?' selected':''}" onclick="choose('A')">
+            <span class="option-letter">A</span><span>${q.a}</span>
+          </button>
+          <button class="option-btn${answers[current]==='B'?' selected':''}" onclick="choose('B')">
+            <span class="option-letter">B</span><span>${q.b}</span>
+          </button>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="nav-btn" onclick="prev()" ${current===0?'disabled':''}>Back</button>
+        <div class="dot-nav">${dots.slice(Math.max(0,current-3),current+4).join('')}</div>
+        ${current<19
+          ? `<button class="nav-btn primary" onclick="next()" ${!answers[current]?'disabled':''}>Next</button>`
+          : `<button class="nav-btn primary" onclick="finish()" ${!answers[current]?'disabled':''}>See result</button>`
+        }
+      </div>
+    </div>
+  `;
+}
+
+function choose(opt) {
+  answers[current] = opt;
+  renderQuestion();
+  if(current < 19) setTimeout(()=>{ current++; renderQuestion(); }, 280);
+}
+
+function prev() { if(current>0){ current--; renderQuestion(); } }
+function next() { if(answers[current]&&current<19){ current++; renderQuestion(); } }
+function finish() { if(answers[current]) renderResult(); }
+function restart() { answers = new Array(20).fill(null); current=0; renderIntro(); }
+
+renderIntro();
+</script>
+</body>
+</html>
